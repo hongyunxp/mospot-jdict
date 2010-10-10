@@ -1,0 +1,37 @@
+/* TODO: put your application-specific CSS here */
+
+.main {
+	margin-top: 48px;
+}
+.palm-body-text {
+	font-size: 20px;
+}
+.dict /* dict data common */ { }
+.word /* word it self */ {	display: inline; font-weight: bolder; margin-right: .4em; }
+.pron /* pronunciation */ {	display: inline; color: green; font-size: 95%; font-weight: lighter; }
+.expl .part /* part of speech */ { display: inline; color: brown; font-size: smaller; margin-right: .4em; }
+.sent /* sentence */ { font-size: 90%; margin-top: 0.4em; }
+.sent .sthd /* sentence header */ { color: black; }
+
+#_countDivContainer {
+	display: none;
+}
+#_filterreaddiv {
+	position: inherit;
+	margin-right: 36px;
+}
+#searchInput {
+	font-size: inherit;
+	color: inherit;
+	background: inherit;
+	border: none;
+	border-bottom-style: dotted;
+	border-bottom-width: thin;
+	border-bottom-color: DarkGray;
+	padding-left: 0px;
+	width: 98%;
+}
+::-webkit-input-placeholder {
+	font-style: italic;
+	color: gray;
+}
