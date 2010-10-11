@@ -81,7 +81,9 @@ MainAssistant.prototype.handleFocus = function(event) {
 };
 MainAssistant.prototype.handleKeyDown = function(event) {
 	Mojo.Log.info("======= handleKeyDown", event.type);
-	this.searchField.focus();
+	if(event.keyCode != Mojo.Char.metaKey) {
+		this.searchField.focus();
+	}
 };
 MainAssistant.prototype.handleInput = function(event) {
 	Mojo.Log.info("======= handleInput", event.type);
@@ -92,7 +94,8 @@ MainAssistant.prototype.handleInput = function(event) {
 };
 MainAssistant.prototype.handleFilter = function(event) {
 	Mojo.Log.info("======= handleFilter", event.type);
-	var sqlQuery = "Select * from dict where word>='" + event.filterString + "' collate nocase limit 1";
+	var keyword = event.filterString.replace(/\'/g, "''");
+	var sqlQuery = "Select * from dict where word>='" + keyword + "' collate nocase limit 1";
 	this.dict.db.transaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
 								   this.handleTransactionSucces.bind(this),
@@ -104,7 +107,7 @@ MainAssistant.prototype.handleTransactionSucces = function(transaction, SQLResul
 	if(SQLResultSet.rows.length > 0) {
 		var dictModel = SQLResultSet.rows.item(0);
 		this.dict.renderParams.object = dictModel;
-		this.controller.get("dict-data").innerHTML = Mojo.View.render(this.dict.renderParams);
+		this.controller.get("dict-main").innerHTML = Mojo.View.render(this.dict.renderParams);
 		this.dict.renderParams.object = null;
 	}
 };
