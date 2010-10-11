@@ -69,40 +69,38 @@ MainAssistant.prototype.cleanup = function(event) {
 
 ///////////////////////////////////////////
 MainAssistant.prototype.handleEnter = function(event) {
-	Mojo.Log.info("======= handleEnter", event.type);
 	if (Mojo.Char.isEnterKey(event.keyCode)) {
 		this.searchField.select();
 		// TODO: if already selected, move to next dict
 	}
 };
 MainAssistant.prototype.handleFocus = function(event) {
-	Mojo.Log.info("======= handleFocus", event.type);
 	this.searchField.select();
 };
 MainAssistant.prototype.handleKeyDown = function(event) {
-	Mojo.Log.info("======= handleKeyDown", event.type);
-	if(event.keyCode != Mojo.Char.metaKey) {
+	if(event.originalEvent.keyCode != Mojo.Char.metaKey) {
 		this.searchField.focus();
 	}
 };
 MainAssistant.prototype.handleInput = function(event) {
-	Mojo.Log.info("======= handleInput", event.type);
 	if(this.filterString != this.searchField.value) {
 		this.filterString = this.searchField.value;
 		Mojo.Event.send(this.searchField, Mojo.Event.filter, { filterString: this.searchField.value });
 	}
 };
 MainAssistant.prototype.handleFilter = function(event) {
-	Mojo.Log.info("======= handleFilter", event.type);
-	var keyword = event.filterString.replace(/\'/g, "''");
+	this.lookUp(event.filterString);
+};
+//////////////////
+MainAssistant.prototype.lookUp = function(word) {
+	var keyword = word.replace(/\'/g, "''");
 	var sqlQuery = "Select * from dict where word>='" + keyword + "' collate nocase limit 1";
 	this.dict.db.transaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
 								   this.handleTransactionSucces.bind(this),
 								   this.handleTransactionError.bind(this));
-		}).bind(this));
+		}).bind(this));	
 };
-
 MainAssistant.prototype.handleTransactionSucces = function(transaction, SQLResultSet) {
 	if(SQLResultSet.rows.length > 0) {
 		var dictModel = SQLResultSet.rows.item(0);
