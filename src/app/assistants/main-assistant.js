@@ -39,6 +39,20 @@ MainAssistant.prototype.setup = function() {
 	this.controller.setInitialFocusedElement(null);
 	this.searchField = this.controller.get("searchInput");
 	
+	
+    this.controller.setupWidget("dict-selector",
+        this.attributes = {
+            choices: [
+                {label: "One", value: 1},
+                {label: "Two", value: 2},
+                {label: "Three", value: 3}
+            ]},
+        this.model = {
+            value: 3,
+            disabled: false
+        }
+    );
+	
 	/* add event handlers to listen to events from widgets */
 	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.handleKeyDown.bind(this));
 	this.controller.listen(this.searchField, "input", this.handleInput.bind(this));
@@ -78,7 +92,8 @@ MainAssistant.prototype.handleFocus = function(event) {
 	this.searchField.select();
 };
 MainAssistant.prototype.handleKeyDown = function(event) {
-	if(event.originalEvent.keyCode != Mojo.Char.metaKey) {
+	if(event.originalEvent.keyCode != Mojo.Char.metaKey
+	   && event.originalEvent.keyCode != Mojo.Char.escape) {
 		this.searchField.focus();
 	}
 };

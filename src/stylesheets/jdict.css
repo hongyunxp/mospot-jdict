@@ -1,25 +1,17 @@
 /* TODO: put your application-specific CSS here */
 
-.main {
-	margin-top: 48px;
-}
 .palm-body-text {
 	font-size: 20px;
 }
-.dict /* dict data common */ { }
-.word /* word it self */ {	display: inline; font-weight: bolder; margin-right: .4em; }
-.pron /* pronunciation */ {	display: inline; color: green; font-size: 95%; font-weight: lighter; }
-.expl .part /* part of speech */ { display: inline; color: brown; font-size: smaller; margin-right: .4em; }
-.sent /* sentence */ { font-size: 90%; margin-top: 0.4em; }
-.sent .sthd /* sentence header */ { color: black; }
+.filter-field-container .results-count-container {
+	/*-webkit-border-image: url(../images/window-indicator.png) 16 6 16 6 repeat repeat;*/
+}
+#dict-selector {
+	font-size: 14px;
+	text-align: center;
+	margin-top: -10px;
+}
 
-#_countDivContainer {
-	display: none;
-}
-#_filterreaddiv {
-	position: inherit;
-	margin-right: 36px;
-}
 #searchInput {
 	font-size: inherit;
 	color: inherit;
@@ -28,10 +20,34 @@
 	border-bottom-style: dotted;
 	border-bottom-width: thin;
 	border-bottom-color: DarkGray;
-	padding-left: 0px;
-	width: 98%;
+/*	width: 98%;*/
 }
+
+/*.filter-field-container .dict-selector {
+  height: 24px;
+  border-width: 11px;
+  -webkit-border-image: url(../images/filter-field-pill.png) 11 11 11 11 repeat repeat;
+  -webkit-box-sizing: border-box;
+  float: right;
+  text-align: center;
+  margin: 0px -15px -5px 0px;
+  min-width: 23px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}*/
+
+
 ::-webkit-input-placeholder {
 	font-style: italic;
 	color: gray;
 }
+
+
+/* default dictionary styles */
+.dict /* dict data common */ { }
+.word /* word it self */ {	display: inline; font-weight: bold; margin-right: .4em; }
+.pron /* pronunciation */ {	display: inline; color: green; font-size: 95%; }
+.expl .part /* part of speech */ { display: inline; color: brown; font-size: smaller; margin-right: .4em; }
+.sent /* sentence */ { font-size: 90%; margin-top: 0.4em; }
+.sent .sthd /* sentence header */ { color: black; }
