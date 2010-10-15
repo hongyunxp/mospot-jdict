@@ -29,7 +29,7 @@ function MainAssistant() {
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	this.controller.window.PalmSystem.setWindowOrientation("free");
-	this.dict = { };
+	this.dict = { rowid: 0, count: 10 /* TODO: read dict count */ };
 	this.dict.db = openDatabase("langdao-ec-gb", 1);
 
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
@@ -40,18 +40,33 @@ MainAssistant.prototype.setup = function() {
 	this.searchField = this.controller.get("searchInput");
 	
 	
-    this.controller.setupWidget("dict-selector",
-        this.attributes = {
-            choices: [
-                {label: "One", value: 1},
-                {label: "Two", value: 2},
-                {label: "Three", value: 3}
-            ]},
-        this.model = {
-            value: 3,
-            disabled: false
-        }
-    );
+	this.controller.setupWidget("dict-selector",
+		this.attributes = {
+			choices: [
+				{label: "One", value: 1},
+				{label: "Two", value: 2},
+				{label: "Three", value: 3}
+			]},
+		this.model = {
+			value: 3,
+			disabled: false
+		}
+	);
+	
+	
+	this.controller.setupWidget(Mojo.Menu.commandMenu,
+		this.attributes = {
+		/*	spacerHeight: 0, */
+			menuClass: 'no-fade'
+		},
+		this.model = {
+			visible: true,
+			items: [ 
+				{ icon: "back", command: "look-Previous" },
+				{ icon: 'forward', command: 'look-Next' }
+			]
+		}
+	);
 	
 	/* add event handlers to listen to events from widgets */
 	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.handleKeyDown.bind(this));
@@ -92,8 +107,7 @@ MainAssistant.prototype.handleFocus = function(event) {
 	this.searchField.select();
 };
 MainAssistant.prototype.handleKeyDown = function(event) {
-	if(event.originalEvent.keyCode != Mojo.Char.metaKey
-	   && event.originalEvent.keyCode != Mojo.Char.escape) {
+	if(event.originalEvent.keyCode != Mojo.Char.metaKey && event.originalEvent.keyCode != Mojo.Char.escape) {
 		this.searchField.focus();
 	}
 };
@@ -106,10 +120,36 @@ MainAssistant.prototype.handleInput = function(event) {
 MainAssistant.prototype.handleFilter = function(event) {
 	this.lookUp(event.filterString);
 };
+
+MainAssistant.prototype.handleCommand = function(event) {
+	if(event.type === Mojo.Event.command) {
+		switch (event.command) {
+		case "look-Previous":
+			this.lookNext(-1);
+			break;
+		case "look-Next":
+			this.lookNext(1);
+			break;
+		}
+	} else if(event.type == Mojo.Event.back) {
+		this.searchField.blur();
+	}
+};
 //////////////////
 MainAssistant.prototype.lookUp = function(word) {
 	var keyword = word.replace(/\'/g, "''");
-	var sqlQuery = "Select * from dict where word>='" + keyword + "' collate nocase limit 1";
+	var sqlQuery = "Select rowid,* from dict where word>='" + keyword + "' collate nocase limit 1";
+	this.dict.db.transaction((function(transaction) {
+			transaction.executeSql(sqlQuery, [],
+								   this.handleTransactionSucces.bind(this),
+								   this.handleTransactionError.bind(this));
+		}).bind(this));	
+};
+MainAssistant.prototype.lookNext = function(offset) {
+	this.dict.rowid = parseInt(this.dict.rowid) + offset;
+	if(this.dict.rowid < 0) this.dict.rowid = 0;
+	if(this.dict.rowid > this.dict.count) this.dict.rowid = this.dict.count;
+	var sqlQuery = "Select rowid,* from dict where rowid=" + this.dict.rowid;
 	this.dict.db.transaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
 								   this.handleTransactionSucces.bind(this),
@@ -121,6 +161,8 @@ MainAssistant.prototype.handleTransactionSucces = function(transaction, SQLResul
 		var dictModel = SQLResultSet.rows.item(0);
 		this.dict.renderParams.object = dictModel;
 		this.controller.get("dict-main").innerHTML = Mojo.View.render(this.dict.renderParams);
+		
+		this.dict.rowid = dictModel.rowid;
 		this.dict.renderParams.object = null;
 	}
 };
