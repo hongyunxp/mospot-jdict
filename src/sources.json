@@ -3,5 +3,9 @@
     {
         "scenes": "main",
         "source": "app/assistants/main-assistant.js"
+    },
+    {
+        "scenes": "main",
+        "source": "app/model/dictionary.js"
     }
 ]
