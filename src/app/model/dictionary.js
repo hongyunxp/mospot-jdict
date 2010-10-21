@@ -45,7 +45,7 @@ Dictionary.prototype.handleInitError = function(dict, transaction, error) {
 ///////////
 Dictionary.prototype.release = function() {
 
-}
+};
 Dictionary.prototype.load = function(callback) {
 	this.loadCallback = callback;
 	// dict meta and render parameters
@@ -91,9 +91,9 @@ Dictionary.prototype.lookUp = function(word, callback) {
 		}).bind(this));	
 };
 Dictionary.prototype.lookNext = function(offset) {
-	this.rowid = parseInt(this.rowid) + offset;
-	if(this.rowid < 1) this.rowid = 1;
-	if(this.rowid > this.count) this.rowid = this.count;
+	this.rowid = parseInt(this.rowid, 10) + offset;
+	if(this.rowid < 1) { this.rowid = 1; }
+	if(this.rowid > this.count) { this.rowid = this.count; }
 	var sqlQuery = "Select rowid,* from dict where rowid=" + this.rowid;
 	this.db.transaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
@@ -103,7 +103,7 @@ Dictionary.prototype.lookNext = function(offset) {
 };
 Dictionary.prototype.handleLookUpSucces = function(transaction, SQLResultSet) {
 	if(SQLResultSet.rows.length > 0) {
-		this.renderParams.object = SQLResultSet.rows.item(0);;
+		this.renderParams.object = SQLResultSet.rows.item(0);
 		this.rowid = SQLResultSet.rows.item(0).rowid;
 		this.lookUpCallback(this);
 		this.renderParams.object = null;

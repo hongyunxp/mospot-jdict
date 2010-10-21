@@ -30,29 +30,34 @@ function MainAssistant() {
 
 MainAssistant.prototype.loadDictComplete = function(dict) {
 	// setup styles
-	this.controller.get("dict-style").outerHTML = '<style type="text/css" id="dict-style">'+ dict.meta.style +'</style>';
+	_dumpObj(dict.meta);
+	this.controller.get("dict-style").outerHTML = '<style type="text/css" id="dict-style">'+ dict.meta.styles +'</style>';
+	// TODO: this.lookUp();
 };
 MainAssistant.prototype.initDictsComplete = function() {
+	// wait untill all dicts inited
 	--this.pendingInits;
-	if(this.pendingInits > 0) return;
+	if(this.pendingInits > 0) { return; }
 	
 	// all dicts inited
 	delete this.pendingInits;
 
+	var i, j;
+
 	// remove invalid dicts
-	for(var i = 0; i < this.dicts.length; ++i) {
-		if(!this.dicts[i].db) this.dicts[i] = null;
+	for(i = 0; i < this.dicts.length; ++i) {
+		if(!this.dicts[i].db) { this.dicts[i] = null; }
 	}
 
 	// setup dict_selector model
-	for(var i = 0, j = 0; i < this.dicts.length; ++i) {
+	for(i = 0, j = 0; i < this.dicts.length; ++i) {
 		if(this.dicts[i]) {
 			this.dictSelectorModel.choices[j] = { label: this.dicts[i].name, value: i };
 			this.dictSelectorModel.value = i;
 			++j;
 		}
 	}
-	for(var i = 0; i < this.dictSelectorModel.choices.length; ++i) {
+	for(i = 0; i < this.dictSelectorModel.choices.length; ++i) {
 		//if(this.dictSelectorModel.choices[i].value == this.dictSelectorModel.value);
 	}
 	this.controller.modelChanged(this.dictSelectorModel, this);
@@ -66,7 +71,7 @@ MainAssistant.prototype.initDictsComplete = function() {
 		this.continueActivate();
 		delete this.continueActivate;
 	}
-}
+};
 MainAssistant.prototype.initDicts = function() {
 	this.dicts = [];
 	this.MAX_DICTS = 7;
@@ -76,7 +81,7 @@ MainAssistant.prototype.initDicts = function() {
 		this.dicts[i] = new Dictionary("dict"+i);
 		this.dicts[i].init(this.initDictsComplete.bind(this));
 	}
-}
+};
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	// this.controller.window.PalmSystem.setWindowOrientation("free");
@@ -98,18 +103,20 @@ MainAssistant.prototype.setup = function() {
 	this.aboutToActivateEventListener = this.handleAboutToActivate.bindAsEventListener(this);
 	this.controller.listen(this.controller.sceneElement, Mojo.Event.aboutToActivate, this.aboutToActivateEventListener);
 	
-	this.keyDownEventListener = this.handleKeyDown.bindAsEventListener(this)
+	this.keyDownEventListener = this.handleKeyDown.bindAsEventListener(this);
 	this.inputEventListener = this.handleInput.bindAsEventListener(this);
 	this.filterEventListener = this.handleFilter.bindAsEventListener(this);
 	this.focusEventListener = this.handleFocus.bindAsEventListener(this);
 	this.enterEventListener = this.handleEnter.bindAsEventListener(this);
 	this.docDeactivateEventListener = this.handleDocDeactivate.bindAsEventListener(this);
+	this.dictSelectEventListener = this.handleDictSelect.bindAsEventListener(this);
 	this.controller.listen(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownEventListener);
 	this.controller.listen(this.searchField, "input", this.inputEventListener);
 	this.controller.listen(this.searchField, Mojo.Event.filter, this.filterEventListener);
 	this.controller.listen(this.searchField, "focus", this.focusEventListener);
 	this.controller.listen(this.searchField, "keydown", this.enterEventListener);
 	this.controller.listen(this.controller.document, Mojo.Event.stageDeactivate, this.docDeactivateEventListener, false);
+	this.controller.listen("dict-selector", Mojo.Event.propertyChange, this.dictSelectEventListener);
 };
 
 MainAssistant.prototype.activate = function(event) {
@@ -139,7 +146,7 @@ MainAssistant.prototype.handleAboutToActivate = function(event) {
 	if(this.pendingInits > 0) {
 		this.continueActivate = event.synchronizer.wrap(Mojo.doNothing);
 	}
-}
+};
 MainAssistant.prototype.handleEnter = function(event) {
 	if (Mojo.Char.isEnterKey(event.keyCode)) {
 		this.searchField.select();
@@ -165,7 +172,10 @@ MainAssistant.prototype.handleFocus = function(event) {
 };
 MainAssistant.prototype.handleDocDeactivate = function(event) {
 	this.searchField.blur();
-}
+};
+MainAssistant.prototype.handleDictSelect = function(event) {
+	this.dicts[event.value].load(this.loadDictComplete.bind(this));
+};
 MainAssistant.prototype.handleCommand = function(event) {
 	if(event.type === Mojo.Event.command) {
 		switch (event.command) {
@@ -183,7 +193,7 @@ MainAssistant.prototype.onLookUp = function(dict) {
 	if(dict) {
 		this.controller.get("dict-main").innerHTML = Mojo.View.render(dict.renderParams);
 	}
-}
+};
 MainAssistant.prototype.lookUp = function(word) {
 	this.dicts[this.dictSelectorModel.value].lookUp(word, this.onLookUp.bind(this));
 };
