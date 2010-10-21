@@ -6,6 +6,6 @@
     },
     {
         "scenes": "main",
-        "source": "app/model/dictionary.js"
+        "source": "app/models/dictionary.js"
     }
 ]
