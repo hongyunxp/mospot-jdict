@@ -11,7 +11,9 @@
 	text-align: center;
 	margin-top: -10px;
 }
-
+.filter-field-container .search-term {
+  bottom: -2px;
+}
 #searchInput {
 	font-size: inherit;
 	color: inherit;
