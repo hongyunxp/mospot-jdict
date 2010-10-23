@@ -1,10 +1,11 @@
 /* TODO: put your application-specific CSS here */
 
 .palm-body-text {
-	font-size: 20px;
+	font-size: 18px;
 }
 .filter-field-container .results-count-container {
 	/*-webkit-border-image: url(../images/window-indicator.png) 16 6 16 6 repeat repeat;*/
+	max-width: 100px;
 }
 #dict-selector {
 	font-size: 14px;

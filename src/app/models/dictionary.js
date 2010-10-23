@@ -3,7 +3,7 @@
 		name,
 		count,
 		meta { name, version, info, template, formatters, styles, ... },
-		renderParams { meta.template, meta.formatters },
+		renderParams { object, meta.template, meta.formatters },
 		rowid
 	}
 			
@@ -70,7 +70,7 @@ Dictionary.prototype.handleLoadSuccess = function(transaction, SQLResultSet) {
 		formatters: this.meta.formatters? eval('('+this.meta.formatters+')') : undefined
 	};
 	
-	this.loadCallback(this);
+	this.loadCallback(this.meta);
 	delete this.loadCallback;
 };
 Dictionary.prototype.handleLoadError = function(transaction, error) {
@@ -90,7 +90,9 @@ Dictionary.prototype.lookUp = function(word, callback) {
 								   this.handleLookUpError.bind(this));
 		}).bind(this));	
 };
-Dictionary.prototype.lookNext = function(offset) {
+Dictionary.prototype.lookNext = function(offset, callback) {
+	this.lookUpCallback = callback;
+	
 	this.rowid = parseInt(this.rowid, 10) + offset;
 	if(this.rowid < 1) { this.rowid = 1; }
 	if(this.rowid > this.count) { this.rowid = this.count; }
@@ -105,14 +107,12 @@ Dictionary.prototype.handleLookUpSucces = function(transaction, SQLResultSet) {
 	if(SQLResultSet.rows.length > 0) {
 		this.renderParams.object = SQLResultSet.rows.item(0);
 		this.rowid = SQLResultSet.rows.item(0).rowid;
-		this.lookUpCallback(this);
+		this.lookUpCallback(this.renderParams);
 		this.renderParams.object = null;
-		delete this.lookUpCallback;
 	}
 };
 Dictionary.prototype.handleLookUpError = function(transaction, error) {
 	Mojo.Log.error("sql error: ", error.message);
 	this.lookUpCallback();
-	delete this.lookUpCallback;
 };
 

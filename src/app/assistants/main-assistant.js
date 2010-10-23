@@ -1,26 +1,3 @@
-var FmtUtil = {
-	_LfToBr : function(text) {
-		return text? text.replace(/\\n/g, "<br />") : null;
-	},
-	_texToHtmlMarks : function(text, marks) {
-		for(var i = 0; i < marks.length; ++i) {
-			text = text? text.replace(RegExp("\\\\"+marks[i]+"\\{(.+?)\\}", "g"), '<div class="'+marks[i]+'">$1</div>') : null;
-		}
-		return text;
-	},
-	_texToHtml : function(text) {
-		return text? text.replace(/\\([a-zA-Z_]+?)\{(.+?)\}/g, '<div class="$1">$2</div>') : null;
-	}
-};
-var _dumpObj = function(obj) {
-	Mojo.Log.info("#######################obj:", obj? obj.toString() : "<undefined>");
-	for(var key in obj)
-	{
-		Mojo.Log.info("####obj:", key, obj[key]);
-	}
-};
-///////////////////////////
-
 function MainAssistant() {
 	/* this is the creator function for your scene assistant object. It will be passed all the 
 	   additional parameters (after the scene name) that were passed to pushScene. The reference
@@ -28,76 +5,28 @@ function MainAssistant() {
 	   that needs the scene controller should be done in the setup function below. */
 }
 
-MainAssistant.prototype.loadDictComplete = function(dict) {
-	// setup styles
-	_dumpObj(dict.meta);
-	this.controller.get("dict-style").outerHTML = '<style type="text/css" id="dict-style">'+ dict.meta.styles +'</style>';
-	// TODO: this.lookUp();
-};
-MainAssistant.prototype.initDictsComplete = function() {
-	// wait untill all dicts inited
-	--this.pendingInits;
-	if(this.pendingInits > 0) { return; }
-	
-	// all dicts inited
-	delete this.pendingInits;
-
-	var i, j;
-
-	// remove invalid dicts
-	for(i = 0; i < this.dicts.length; ++i) {
-		if(!this.dicts[i].db) { this.dicts[i] = null; }
-	}
-
-	// setup dict_selector model
-	for(i = 0, j = 0; i < this.dicts.length; ++i) {
-		if(this.dicts[i]) {
-			this.dictSelectorModel.choices[j] = { label: this.dicts[i].name, value: i };
-			this.dictSelectorModel.value = i;
-			++j;
-		}
-	}
-	for(i = 0; i < this.dictSelectorModel.choices.length; ++i) {
-		//if(this.dictSelectorModel.choices[i].value == this.dictSelectorModel.value);
-	}
-	this.controller.modelChanged(this.dictSelectorModel, this);
-	Mojo.Log.info("this.dictSelectorModel.value:", this.dictSelectorModel.value);
-	
-	// load dict meta and render parameters
-	this.dicts[this.dictSelectorModel.value].load(this.loadDictComplete.bind(this));
-	
-	// Continue activation procedure if we delayed it.
-	if(this.continueActivate) {
-		this.continueActivate();
-		delete this.continueActivate;
-	}
-};
-MainAssistant.prototype.initDicts = function() {
-	this.dicts = [];
-	this.MAX_DICTS = 7;
-	this.pendingInits = this.MAX_DICTS;
-	
-	for(var i = 0; i < this.MAX_DICTS; ++i) {
-		this.dicts[i] = new Dictionary("dict"+i);
-		this.dicts[i].init(this.initDictsComplete.bind(this));
-	}
-};
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	// this.controller.window.PalmSystem.setWindowOrientation("free");
 
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
 	this.initDicts();
+	this.controller.get("main").style.fontSize = Model.model.fontSize;
 	
 	/* setup widgets here */
 	this.controller.setInitialFocusedElement(null);
 	this.searchField = this.controller.get("searchInput");
-	this.controller.setupWidget("dict-selector",
-		{ modelProperty: "value" },
-		this.dictSelectorModel = { value: 0, choices: [] }
-	);
-	// update dictSelectorModel in initDictsComplete callback
-	//   setup dict style after up date dictSelectorModel
+	this.searchField.value = Model.model.word;
+	this.controller.setupWidget("dict-selector", { modelProperty: "dictIndex" }, Model.model);
+	// command menus
+	this.controller.setupWidget(Mojo.Menu.commandMenu,
+		{ menuClass: 'no-fade' },
+		this.commandMenuModel = { visible: true, items: [
+				{},
+				{ icon: "back", command: "lookPrevious" },
+				{ icon: 'forward', command: 'lookNext' } ] } );
+	// update dict-selector model in initDictsComplete callback
+	//   setup dict style after up date dict-selector model
 	
 	/* add event handlers to listen to events from widgets */
 	this.aboutToActivateEventListener = this.handleAboutToActivate.bindAsEventListener(this);
@@ -159,8 +88,7 @@ MainAssistant.prototype.handleKeyDown = function(event) {
 	}
 };
 MainAssistant.prototype.handleInput = function(event) {
-	if(this.filterString != this.searchField.value) {
-		this.filterString = this.searchField.value;
+	if(Model.model.word != this.searchField.value) {
 		Mojo.Event.send(this.searchField, Mojo.Event.filter, { filterString: this.searchField.value });
 	}
 };
@@ -177,26 +105,97 @@ MainAssistant.prototype.handleDictSelect = function(event) {
 	this.dicts[event.value].load(this.loadDictComplete.bind(this));
 };
 MainAssistant.prototype.handleCommand = function(event) {
-	if(event.type === Mojo.Event.command) {
+	if(event.type == Mojo.Event.command) {
 		switch (event.command) {
-		case "look-Previous":
+		case "lookPrevious":
 			this.lookNext(-1);
 			break;
-		case "look-Next":
+		case "lookNext":
 			this.lookNext(1);
 			break;
 		}
-	} 
-};
-//////////////////
-MainAssistant.prototype.onLookUp = function(dict) {
-	if(dict) {
-		this.controller.get("dict-main").innerHTML = Mojo.View.render(dict.renderParams);
 	}
 };
+//////////////////
+MainAssistant.prototype.onLookUp = function(dictRenderParams) {
+	this.controller.get("dict-main").innerHTML = Mojo.View.render(dictRenderParams);
+
+	if(dictRenderParams.object.rowid <= 1) {
+		this.commandMenuModel.items[1].disabled = true;
+	} else if(dictRenderParams.object.rowid >= this.dicts[Model.model.dictIndex].count) {
+		this.commandMenuModel.items[2].disabled = true;
+	} else {
+		this.commandMenuModel.items[1].disabled = false;
+		this.commandMenuModel.items[2].disabled = false;
+	}
+	this.controller.modelChanged(this.commandMenuModel, this);
+};
 MainAssistant.prototype.lookUp = function(word) {
-	this.dicts[this.dictSelectorModel.value].lookUp(word, this.onLookUp.bind(this));
+	Model.model.word = word;
+	this.dicts[Model.model.dictIndex].lookUp(word, this.onLookUp.bind(this));
+};
+MainAssistant.prototype.onLookNext = function(dictRenderParams) {
+	Mojo.Log.info("onLookNext:", dictRenderParams.object.word);
+	Model.model.word = dictRenderParams.object.word;
+	this.searchField.value = Model.model.word;
+	this.onLookUp(dictRenderParams);
 };
 MainAssistant.prototype.lookNext = function(offset) {
-	this.dicts[this.dictSelectorModel.value].lookNext(offset, this.onLookUp.bind(this));
+	this.dicts[Model.model.dictIndex].lookNext(offset, this.onLookNext.bind(this));
+};
+//////////////////////
+MainAssistant.prototype.loadDictComplete = function(meta) {
+	// setup styles
+	//this.controller.get("dict-style").outerHTML = '<style type="text/css" id="dict-style">'+ dict.meta.styles +'</style>';
+	this.controller.get("dict-style").outerHTML = this.controller.get("dict-style").outerHTML.replace("{}", meta.styles);
+	
+	this.lookUp(Model.model.word);
+};
+MainAssistant.prototype.initDictsComplete = function() {
+	// wait untill all dicts inited
+	--this.pendingInits;
+	if(this.pendingInits > 0) { return; }
+	
+	// all dicts inited
+	delete this.pendingInits;
+
+	var i, j;
+
+	// remove invalid dicts
+	for(i = 0; i < this.dicts.length; ++i) {
+		if(!this.dicts[i].db) { this.dicts[i] = null; }
+	}
+	
+	// setup dict_selector model
+	for(i = 0, j = 0; i < this.dicts.length; ++i) {
+		if(this.dicts[i]) {
+			Model.model.choices[j] = { label: this.dicts[i].name, value: i };
+			++j;
+		}
+	}
+	// if curent dict not valid, use the first
+	if(Model.model.dictIndex < 0 || Model.model.dictIndex > this.dicts.length || !this.dicts[Model.model.dictIndex]) {
+		Model.model.dictIndex = Model.model.choices[0].value;
+	}
+	this.controller.modelChanged(Model.model, this);
+	Mojo.Log.info("Model.model.dictIndex:", Model.model.dictIndex);
+	
+	// load dict meta and render parameters
+	this.dicts[Model.model.dictIndex].load(this.loadDictComplete.bind(this));
+	
+	// Continue activation procedure if we delayed it.
+	if(this.continueActivate) {
+		this.continueActivate();
+		delete this.continueActivate;
+	}
+};
+MainAssistant.prototype.initDicts = function() {
+	this.dicts = [];
+	this.MAX_DICTS = 7;
+	this.pendingInits = this.MAX_DICTS;
+	
+	for(var i = 0; i < this.MAX_DICTS; ++i) {
+		this.dicts[i] = new Dictionary("dict"+i);
+		this.dicts[i].init(this.initDictsComplete.bind(this));
+	}
 };
