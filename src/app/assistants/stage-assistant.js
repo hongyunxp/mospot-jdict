@@ -5,7 +5,5 @@ function StageAssistant() {
 StageAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the stage is first created */
 	
-	Model.init();
-	
 	this.controller.pushScene("main");
 };

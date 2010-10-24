@@ -8,10 +8,10 @@ function MainAssistant() {
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	// this.controller.window.PalmSystem.setWindowOrientation("free");
+	Model.init();
 
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
 	this.initDicts();
-	this.controller.get("main").style.fontSize = Model.model.fontSize;
 	
 	/* setup widgets here */
 	this.controller.setInitialFocusedElement(null);
@@ -25,6 +25,10 @@ MainAssistant.prototype.setup = function() {
 				{},
 				{ icon: "back", command: "lookPrevious" },
 				{ icon: 'forward', command: 'lookNext' } ] } );
+	// app menu
+	Mojo.Menu.prefsItem.checkEnabled = false;
+	Mojo.Menu.helpItem.checkEnabled = false;
+	
 	// update dict-selector model in initDictsComplete callback
 	//   setup dict style after up date dict-selector model
 	
@@ -51,6 +55,7 @@ MainAssistant.prototype.setup = function() {
 MainAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
+	this.controller.get("main").style.fontSize = Model.model.fontSize;
 };
 
 MainAssistant.prototype.deactivate = function(event) {
@@ -67,6 +72,8 @@ MainAssistant.prototype.cleanup = function(event) {
 	this.controller.stopListening(this.searchField, "focus", this.focusEventListener);
 	this.controller.stopListening(this.searchField, "keydown", this.enterEventListener);
 	this.controller.stopListening(this.controller.document, Mojo.Event.stageDeactivate, this.docDeactivateEventListener, false);
+	
+	Model.store();
 };
 
 ///////////////////////////////////////////
@@ -112,6 +119,12 @@ MainAssistant.prototype.handleCommand = function(event) {
 			break;
 		case "lookNext":
 			this.lookNext(1);
+			break;
+		case Mojo.Menu.prefsCmd:
+			this.controller.stageController.pushScene("prefs");
+			break;
+		case Mojo.Menu.helpCmd:
+			this.controller.stageController.pushScene("help");
 			break;
 		}
 	}

@@ -3,14 +3,16 @@ Model = ({
 		fontSize: "normal",
 		choices: [], // will not save, for dict-selector
 		dictIndex: 0,
-		word: "hello"
+		word: ""
 	},
 	
 	init: function() {
 		this.cookie = new Mojo.Model.Cookie("Prefs");
 		var prefData = this.cookie.get();
 		if(prefData) {
-			this.model = prefData;
+			this.model.fontSize = prefData.fontSize;
+			this.model.dictIndex = prefData.dictIndex;
+			this.model.word = prefData.word;
 		}
 	},
 	store: function() {

@@ -16,5 +16,13 @@
     {
         "scenes": "pref",
         "source": "app/assistants/pref-assistant.js"
+    },
+    {
+        "scenes": "help",
+        "source": "app/assistants/help-assistant.js"
+    },
+    {
+        "scenes": "prefs",
+        "source": "app/assistants/prefs-assistant.js"
     }
 ]

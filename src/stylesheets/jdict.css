@@ -48,8 +48,8 @@
 
 /* default dictionary styles */
 .dict /* dict data common */ { }
-.word /* word it self */ {	display: inline; font-weight: bold; margin-right: .4em; }
-.pron /* pronunciation */ {	display: inline; color: green; font-size: 95%; }
+.word /* word it self */ {	display: inline-block; font-weight: bold; margin-right: .4em; }
+.pron /* pronunciation */ {	display: inline-block; color: green; font-size: 95%; }
 .expl .part /* part of speech */ { display: inline; color: brown; font-size: smaller; margin-right: .4em; }
 .expl .glos /* glossary */ { display: inline; color: gray; font-size: smaller; }
 .sent /* sentence */ { font-size: 90%; margin-top: 0.4em; }
