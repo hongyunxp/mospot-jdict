@@ -1,7 +1,6 @@
 Model = ({
 	model: {
-		fontSize: "normal",
-		choices: [], // will not save, for dict-selector
+		fontSize: "medium",
 		dictIndex: 0,
 		word: ""
 	},

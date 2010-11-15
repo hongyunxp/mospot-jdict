@@ -12,14 +12,15 @@ PrefsAssistant.prototype.setup = function() {
 	
 	/* setup widgets here */
 	this.controller.setupWidget("fontsize-selector",
-			{ label: "Font size", labelPlacement: Mojo.Widget.labelPlacementLeft,
-			modelProperty: "fontSize",
-			choices: [
-				{label: "larger", value: "110%"},
-				{label: "large", value: "105%"},
-				{label: "normal", value: "100%"},
-				{label: "small", value: "95%"},
-				{label: "smaller", value: "90%"} ]},
+			{ label: "Font size", modelProperty: "fontSize",
+				choices: [
+					{label: "Largest", value: "115%"},
+					{label: "Larger", value: "110%"},
+					{label: "Large", value: "105%"},
+					{label: "Medium", value: "100%"},
+					{label: "Small", value: "95%"},
+					{label: "Smaller", value: "90%"},
+					{label: "Smallest", value: "85%"} ]},
 			Model.model);
 	
 	/* add event handlers to listen to events from widgets */

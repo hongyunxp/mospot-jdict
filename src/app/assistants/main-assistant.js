@@ -17,14 +17,16 @@ MainAssistant.prototype.setup = function() {
 	this.controller.setInitialFocusedElement(null);
 	this.searchField = this.controller.get("search-input");
 	this.searchField.value = Model.model.word;
-	this.controller.setupWidget("dict-selector", { modelProperty: "dictIndex" }, Model.model);
+	this.controller.setupWidget("dict-selector",
+			{ modelProperty: "dictIndex", choices: this.dictNames = [] },
+			Model.model);
 	// command menus
 	this.controller.setupWidget(Mojo.Menu.commandMenu,
-		{ menuClass: 'no-fade' },
-		this.commandMenuModel = { visible: true, items: [
-				{},
-				{ icon: "back", command: "lookPrevious" },
-				{ icon: 'forward', command: 'lookNext' } ] } );
+			{ menuClass: 'no-fade' },
+			this.commandMenuModel = { visible: true,
+				items: [ {},
+					{ icon: "back", command: "lookPrevious" },
+					{ icon: 'forward', command: 'lookNext' } ] } );
 	// app menu
 	Mojo.Menu.prefsItem.checkEnabled = false;
 	Mojo.Menu.helpItem.checkEnabled = false;
@@ -33,9 +35,6 @@ MainAssistant.prototype.setup = function() {
 	//   setup dict style after up date dict-selector model
 	
 	/* add event handlers to listen to events from widgets */
-	this.aboutToActivateEventListener = this.handleAboutToActivate.bindAsEventListener(this);
-	this.controller.listen(this.controller.sceneElement, Mojo.Event.aboutToActivate, this.aboutToActivateEventListener);
-	
 	this.keyDownEventListener = this.handleKeyDown.bindAsEventListener(this);
 	this.inputEventListener = this.handleInput.bindAsEventListener(this);
 	this.filterEventListener = this.handleFilter.bindAsEventListener(this);
@@ -77,16 +76,15 @@ MainAssistant.prototype.cleanup = function(event) {
 	Model.store();
 };
 
-MainAssistant.prototype.aboutToActivate = function(callbck) {
-	callback()
+MainAssistant.prototype.aboutToActivate = function(continueActivate) {
+	Mojo.Log.error("aboutToActivate:", this.pendingInits);
+	if(this.pendingInits && this.pendingInits > 0) {
+		this.continueActivate = continueActivate;
+	} else {
+		continueActivate();
+	}
 }
 ///////////////////////////////////////////
-MainAssistant.prototype.handleAboutToActivate = function(event) {
-	this.controller.stopListening(this.controller.sceneElement, Mojo.Event.aboutToActivate, this.aboutToActivateEventListener);
-	if(this.pendingInits > 0) {
-		this.continueActivate = event.synchronizer.wrap(Mojo.doNothing);
-	}
-};
 MainAssistant.prototype.handleEnter = function(event) {
 	if (Mojo.Char.isEnterKey(event.keyCode)) {
 		this.searchField.select();
@@ -152,7 +150,6 @@ MainAssistant.prototype.lookUp = function(word) {
 	this.dicts[Model.model.dictIndex].lookUp(word, this.onLookUp.bind(this));
 };
 MainAssistant.prototype.onLookNext = function(dictRenderParams) {
-	Mojo.Log.info("onLookNext:", dictRenderParams.object.word);
 	Model.model.word = dictRenderParams.object.word;
 	this.searchField.value = Model.model.word;
 	this.onLookUp(dictRenderParams);
@@ -186,16 +183,15 @@ MainAssistant.prototype.initDictsComplete = function() {
 	// setup dict_selector model
 	for(i = 0, j = 0; i < this.dicts.length; ++i) {
 		if(this.dicts[i]) {
-			Model.model.choices[j] = { label: this.dicts[i].name, value: i };
+			this.dictNames[j] = { label: this.dicts[i].name, value: i };
 			++j;
 		}
 	}
 	// if curent dict not valid, use the first
 	if(Model.model.dictIndex < 0 || Model.model.dictIndex > this.dicts.length || !this.dicts[Model.model.dictIndex]) {
-		Model.model.dictIndex = Model.model.choices[0].value;
+		Model.model.dictIndex = this.dictNames[0].value;
 	}
 	this.controller.modelChanged(Model.model, this);
-	Mojo.Log.info("Model.model.dictIndex:", Model.model.dictIndex);
 	
 	// load dict meta and render parameters
 	this.dicts[Model.model.dictIndex].load(this.loadDictComplete.bind(this));
