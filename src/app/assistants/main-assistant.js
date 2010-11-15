@@ -15,7 +15,7 @@ MainAssistant.prototype.setup = function() {
 	
 	/* setup widgets here */
 	this.controller.setInitialFocusedElement(null);
-	this.searchField = this.controller.get("searchInput");
+	this.searchField = this.controller.get("search-input");
 	this.searchField.value = Model.model.word;
 	this.controller.setupWidget("dict-selector", { modelProperty: "dictIndex" }, Model.model);
 	// command menus
@@ -56,6 +56,7 @@ MainAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
 	this.controller.get("main").style.fontSize = Model.model.fontSize;
+	this.searchField.select();
 };
 
 MainAssistant.prototype.deactivate = function(event) {
@@ -76,6 +77,9 @@ MainAssistant.prototype.cleanup = function(event) {
 	Model.store();
 };
 
+MainAssistant.prototype.aboutToActivate = function(callbck) {
+	callback()
+}
 ///////////////////////////////////////////
 MainAssistant.prototype.handleAboutToActivate = function(event) {
 	this.controller.stopListening(this.controller.sceneElement, Mojo.Event.aboutToActivate, this.aboutToActivateEventListener);

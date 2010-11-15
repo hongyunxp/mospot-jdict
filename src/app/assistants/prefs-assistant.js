@@ -11,6 +11,16 @@ PrefsAssistant.prototype.setup = function() {
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
 	
 	/* setup widgets here */
+	this.controller.setupWidget("fontsize-selector",
+			{ label: "Font size", labelPlacement: Mojo.Widget.labelPlacementLeft,
+			modelProperty: "fontSize",
+			choices: [
+				{label: "larger", value: "110%"},
+				{label: "large", value: "105%"},
+				{label: "normal", value: "100%"},
+				{label: "small", value: "95%"},
+				{label: "smaller", value: "90%"} ]},
+			Model.model);
 	
 	/* add event handlers to listen to events from widgets */
 };

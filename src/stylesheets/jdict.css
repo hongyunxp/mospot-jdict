@@ -15,7 +15,7 @@
 .filter-field-container .search-term {
   bottom: -2px;
 }
-#searchInput {
+#search-input {
 	font-size: inherit;
 	color: inherit;
 	background: inherit;
@@ -50,7 +50,7 @@
 .dict /* dict data common */ { }
 .word /* word it self */ {	display: inline-block; font-weight: bold; margin-right: .4em; }
 .pron /* pronunciation */ {	display: inline-block; color: green; font-size: 95%; }
-.expl .part /* part of speech */ { display: inline; color: brown; font-size: smaller; margin-right: .4em; }
-.expl .glos /* glossary */ { display: inline; color: gray; font-size: smaller; }
+.expl .part /* part of speech */ { display: inline; color: brown; font-size: 95%; margin-right: .4em; }
+.expl .glos /* glossary */ { display: inline; color: gray; font-size: 95%; }
 .sent /* sentence */ { font-size: 90%; margin-top: 0.4em; }
 
