@@ -7,7 +7,6 @@ function MainAssistant() {
 
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
-	// this.controller.window.PalmSystem.setWindowOrientation("free");
 	Model.init();
 
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
@@ -55,7 +54,10 @@ MainAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
 	this.controller.get("main").style.fontSize = Model.model.fontSize;
+	//this.controller.window.PalmSystem.setWindowOrientation(Model.model.orientation);
+	this.controller.stageController.setWindowOrientation(Model.model.orientation);
 	this.searchField.select();
+	this.searchField.blur();
 };
 
 MainAssistant.prototype.deactivate = function(event) {
@@ -83,7 +85,7 @@ MainAssistant.prototype.aboutToActivate = function(continueActivate) {
 	} else {
 		continueActivate();
 	}
-}
+};
 ///////////////////////////////////////////
 MainAssistant.prototype.handleEnter = function(event) {
 	if (Mojo.Char.isEnterKey(event.keyCode)) {
@@ -134,6 +136,7 @@ MainAssistant.prototype.handleCommand = function(event) {
 //////////////////
 MainAssistant.prototype.onLookUp = function(dictRenderParams) {
 	this.controller.get("dict-main").innerHTML = Mojo.View.render(dictRenderParams);
+	this.controller.getSceneScroller().mojo.revealTop();
 
 	if(dictRenderParams.object.rowid <= 1) {
 		this.commandMenuModel.items[1].disabled = true;
@@ -152,6 +155,8 @@ MainAssistant.prototype.lookUp = function(word) {
 MainAssistant.prototype.onLookNext = function(dictRenderParams) {
 	Model.model.word = dictRenderParams.object.word;
 	this.searchField.value = Model.model.word;
+	this.searchField.select();
+	this.searchField.blur();
 	this.onLookUp(dictRenderParams);
 };
 MainAssistant.prototype.lookNext = function(offset) {

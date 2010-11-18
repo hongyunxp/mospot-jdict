@@ -11,6 +11,13 @@ PrefsAssistant.prototype.setup = function() {
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
 	
 	/* setup widgets here */
+	this.controller.setupWidget("orientation-selector",
+			{ label: "Orientation", modelProperty: "orientation",
+				choices: [
+					{label: "Portrait", value: "up"},
+					{label: "Free", value: "free"} ]},
+			Model.model);
+	
 	this.controller.setupWidget("fontsize-selector",
 			{ label: "Font size", modelProperty: "fontSize",
 				choices: [
