@@ -5,13 +5,13 @@
 	padding: 10px 10px 0 10px;
 }
 .filter-field-container .results-count-container {
-	/*-webkit-border-image: url(../images/window-indicator.png) 16 6 16 6 repeat repeat;*/
 	max-width: 100px;
 }
 #dict-selector {
 	font-size: 14px;
-	text-align: center;
-	margin-top: -10px;
+	height: 28px;
+	margin: -18px -6px 0 -6px;
+	padding: 8px 5px 0 5px
 }
 .filter-field-container .search-term {
   bottom: -2px;
@@ -23,23 +23,9 @@
 	border: none;
 /*	border-bottom-style: dotted;
 	border-bottom-width: thin;
-	border-bottom-color: DarkGray;
-/*	width: 98%;*/
+	border-bottom-color: DarkGray; */
+	width: 98%;
 }
-
-/*.filter-field-container .dict-selector {
-  height: 24px;
-  border-width: 11px;
-  -webkit-border-image: url(../images/filter-field-pill.png) 11 11 11 11 repeat repeat;
-  -webkit-box-sizing: border-box;
-  float: right;
-  text-align: center;
-  margin: 0px -15px -5px 0px;
-  min-width: 23px;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-}*/
 
 ::-webkit-input-placeholder {
 	font-style: italic;

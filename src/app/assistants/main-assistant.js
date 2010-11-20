@@ -26,9 +26,6 @@ MainAssistant.prototype.setup = function() {
 				items: [ {},
 					{ icon: "back", command: "lookPrevious" },
 					{ icon: 'forward', command: 'lookNext' } ] } );
-	// app menu
-	Mojo.Menu.prefsItem.checkEnabled = false;
-	Mojo.Menu.helpItem.checkEnabled = false;
 	
 	// update dict-selector model in initDictsComplete callback
 	//   setup dict style after up date dict-selector model
@@ -79,7 +76,6 @@ MainAssistant.prototype.cleanup = function(event) {
 };
 
 MainAssistant.prototype.aboutToActivate = function(continueActivate) {
-	Mojo.Log.error("aboutToActivate:", this.pendingInits);
 	if(this.pendingInits && this.pendingInits > 0) {
 		this.continueActivate = continueActivate;
 	} else {
@@ -131,7 +127,11 @@ MainAssistant.prototype.handleCommand = function(event) {
 			this.controller.stageController.pushScene("help");
 			break;
 		}
+	} else if(event.type == Mojo.Event.commandEnable &&
+			(event.command == Mojo.Menu.prefsCmd || event.command == Mojo.Menu.helpCmd)) {
+		event.stopPropagation();
 	}
+
 };
 //////////////////
 MainAssistant.prototype.onLookUp = function(dictRenderParams) {
@@ -165,10 +165,10 @@ MainAssistant.prototype.lookNext = function(offset) {
 //////////////////////
 MainAssistant.prototype.loadDictComplete = function(meta) {
 	// setup styles
-	//this.controller.get("dict-style").outerHTML = '<style type="text/css" id="dict-style">'+ dict.meta.styles +'</style>';
-	this.controller.get("dict-style").outerHTML = this.controller.get("dict-style").outerHTML.replace("{}", meta.styles);
-	
+	this.controller.get("dict-main").innerHTML = "";
 	this.lookUp(Model.model.word);
+	//this.controller.get("dict-style").outerHTML = '<style type="text/css" id="dict-style">'+ dict.meta.styles +'</style>';
+	this.controller.get("dict-style").outerHTML = this.controller.get("dict-style").outerHTML.replace(/(<style.*?>).*?(<\/style>)/, "$1"+meta.styles+"$2");
 };
 MainAssistant.prototype.initDictsComplete = function() {
 	// wait untill all dicts inited

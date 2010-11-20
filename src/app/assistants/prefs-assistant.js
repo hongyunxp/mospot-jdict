@@ -13,13 +13,14 @@ PrefsAssistant.prototype.setup = function() {
 	/* setup widgets here */
 	this.controller.setupWidget("orientation-selector",
 			{ label: "Orientation", modelProperty: "orientation",
+				labelPlacement: Mojo.Widget.labelPlacementLeft, 
 				choices: [
 					{label: "Portrait", value: "up"},
 					{label: "Free", value: "free"} ]},
 			Model.model);
-	
 	this.controller.setupWidget("fontsize-selector",
 			{ label: "Font size", modelProperty: "fontSize",
+				labelPlacement: Mojo.Widget.labelPlacementLeft,
 				choices: [
 					{label: "Largest", value: "115%"},
 					{label: "Larger", value: "110%"},
@@ -29,7 +30,10 @@ PrefsAssistant.prototype.setup = function() {
 					{label: "Smaller", value: "90%"},
 					{label: "Smallest", value: "85%"} ]},
 			Model.model);
-	
+	this.controller.setupWidget("case-toggle",
+			{ trueLabel: "Yes", falseLabel: "No", modelProperty: "caseSensitive" },
+			Model.model);
+		
 	/* add event handlers to listen to events from widgets */
 };
 

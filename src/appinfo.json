@@ -7,23 +7,5 @@
     "main": "index.html",
     "title": "jDict",
     "icon": "icon.png",
-    "smallicon": "icon32x32.png",
-    "splashicon": "icon.png",
-    "splashBackground": "images/splashscreen.png",
     "copyright": "©2010 mospot.net.",
-    "support": {
-        "url": "http://www.mospot.net",
-        "phone": "",
-        "email": {
-            "address": "support@mospot.net",
-            "subject": "Support"
-        },
-        "resources": [
-            {
-                "type": "web",
-                "label": "Official Website",
-                "url": "http://www.mospot.net"
-            }
-        ]
-    }
 }

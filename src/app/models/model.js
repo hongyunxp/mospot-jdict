@@ -1,7 +1,8 @@
 Model = ({
 	model: {
 		orientation: "up",
-		fontSize: "medium",
+		fontSize: "100%",
+		caseSensitive: false,
 		dictIndex: 0,
 		word: ""
 	},
@@ -12,17 +13,13 @@ Model = ({
 		if(prefData) {
 			this.model.orientation = prefData.orientation || this.model.orientation;
 			this.model.fontSize = prefData.fontSize || this.model.fontSize;
+			this.model.caseSensitive = prefData.caseSensitive || this.model.caseSensitive;
 			this.model.dictIndex = prefData.dictIndex || this.model.dictIndex;
 			this.model.word = prefData.word || this.model.word;
 		}
 	},
 	store: function() {
-		this.cookie.put( {
-			orientation: this.model.orientation,
-			fontSize: this.model.fontSize,
-			dictIndex: this.model.dictIndex,
-			word: this.model.word
-		});
+		this.cookie.put(this.model);
 	}
 	
 });

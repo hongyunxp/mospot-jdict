@@ -83,7 +83,8 @@ Dictionary.prototype.lookUp = function(word, callback) {
 	this.lookUpCallback = callback;
 	
 	var keyword = word.replace(/\'/g, "''");
-	var sqlQuery = "Select rowid,* from dict where word>='" + keyword + "' collate nocase limit 1";
+	var caseSense = Model.model.caseSensitive ? "" : " collate nocase";
+	var sqlQuery = "Select rowid,* from dict where word>=" + "'"+keyword+"'" + caseSense +" limit 1";
 	this.db.transaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
 								   this.handleLookUpSucces.bind(this),
