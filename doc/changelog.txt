@@ -1,0 +1,4 @@
+0.2.1   fixes that unable to look up with input method on
+        decreases look up requests
+0.2.0   first released version; implements look up, look next; 7 dicts support
+0.1.0   prototype
