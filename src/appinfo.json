@@ -1,11 +1,11 @@
 {
     "id": "net.mospot.webos.jdict",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "vendor": "bright2k",
     "vendorurl": "http://www.mospot.net",
     "type": "web",
     "main": "index.html",
     "title": "jDict",
     "icon": "icon.png",
-    "copyright": "©2010 mospot.net.",
+    "copyright": "©2010 mospot.net."
 }

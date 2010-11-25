@@ -43,7 +43,7 @@ MainAssistant.prototype.setup = function() {
 	this.controller.listen(this.searchField, Mojo.Event.filter, this.filterEventListener);
 	this.controller.listen(this.searchField, "focus", this.focusEventListener);
 	this.controller.listen(this.searchField, "keydown", this.enterEventListener);
-	this.controller.listen(this.controller.document, Mojo.Event.stageDeactivate, this.docDeactivateEventListener, false);
+	this.controller.listen(this.controller.document, Mojo.Event.stageDeactivate, this.docDeactivateEventListener);
 	this.controller.listen("dict-selector", Mojo.Event.propertyChange, this.dictSelectEventListener);
 };
 
@@ -70,7 +70,7 @@ MainAssistant.prototype.cleanup = function(event) {
 	this.controller.stopListening(this.searchField, Mojo.Event.filter, this.filterEventListener);
 	this.controller.stopListening(this.searchField, "focus", this.focusEventListener);
 	this.controller.stopListening(this.searchField, "keydown", this.enterEventListener);
-	this.controller.stopListening(this.controller.document, Mojo.Event.stageDeactivate, this.docDeactivateEventListener, false);
+	this.controller.stopListening(this.controller.document, Mojo.Event.stageDeactivate, this.docDeactivateEventListener);
 	
 	Model.store();
 };
@@ -87,6 +87,9 @@ MainAssistant.prototype.handleEnter = function(event) {
 	if (Mojo.Char.isEnterKey(event.keyCode)) {
 		this.searchField.select();
 		// TODO: if already selected, move to next dict
+	} else {
+		// fix that an input method do not generate "input" event
+		setTimeout(function(){ Mojo.Event.send(this.searchField, "input"); }.bind(this), 0);
 	}
 };
 MainAssistant.prototype.handleKeyDown = function(event) {
@@ -96,6 +99,7 @@ MainAssistant.prototype.handleKeyDown = function(event) {
 };
 MainAssistant.prototype.handleInput = function(event) {
 	if(Model.model.word != this.searchField.value) {
+		Model.model.word = this.searchField.value;
 		Mojo.Event.send(this.searchField, Mojo.Event.filter, { filterString: this.searchField.value });
 	}
 };
@@ -149,7 +153,6 @@ MainAssistant.prototype.onLookUp = function(dictRenderParams) {
 	this.controller.modelChanged(this.commandMenuModel, this);
 };
 MainAssistant.prototype.lookUp = function(word) {
-	Model.model.word = word;
 	this.dicts[Model.model.dictIndex].lookUp(word, this.onLookUp.bind(this));
 };
 MainAssistant.prototype.onLookNext = function(dictRenderParams) {
