@@ -20,13 +20,28 @@
 <div class="palm-filterfield-spacer filter-field-container-height"></div>
 
 <div class="palm-text-wrapper">
-	<div class="palm-body-text" id="main">
-		<div name="dict">
-			<style type="text/css" scoped="scoped" id="dict-style"></style>
-			<div class="dict" id="dict-main"></div>
-			<div class="dict" id="dict-refer"></div>
+<div x-mojo-element="Scroller" id="swipe-scroller">
+	<div class="swipe-container">
+	
+		<div class="palm-body-text swipe-item" id="swipe-left">
+			<div name="dict">
+				left
+			</div>
 		</div>
+		<div class="palm-body-text swipe-item" id="swipe-main">
+			<div name="dict">
+				<style type="text/css" scoped="true" id="dict-style"></style>
+				<div class="dict" id="dict-main"></div>
+				<div class="dict" id="dict-refer"></div>
+			</div>
+		</div>
+		<div class="palm-body-text swipe-item" id="swipe-right">
+			<div name="dict">
+				right
+			</div>
+		</div>
+
 	</div>
 </div>
-
+</div>
 

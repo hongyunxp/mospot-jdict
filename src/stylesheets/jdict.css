@@ -1,9 +1,5 @@
 /* TODO: put your application-specific CSS here */
 
-.palm-text-wrapper {
-	font-size: 18px;
-	padding: 10px 10px 0 10px;
-}
 .filter-field-container .results-count-container {
 	max-width: 100px;
 }
@@ -32,4 +28,20 @@
 	color: gray;
 }
 
+.palm-text-wrapper {
+	font-size: 18px;
+	padding: 10px 10px 0 10px;
+}
 
+.palm-body-text {
+	margin: 0;
+}
+
+.swipe-container {
+	width: 300%;
+}
+
+.swipe-item {
+	float: left;
+	width: 33.34%;
+}

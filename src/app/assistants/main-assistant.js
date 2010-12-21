@@ -26,6 +26,12 @@ MainAssistant.prototype.setup = function() {
 				items: [ {},
 					{ icon: "back", command: "lookPrevious" },
 					{ icon: 'forward', command: 'lookNext' } ] } );
+	// swipe scroller
+	this.controller.setupWidget("swipe-scroller", { mode: 'horizontal-snap' },
+			this.swipeModel = {
+				snapElements: { x: $$('.swipe-item') },
+				snapIndex: 1 } );
+	this.swipeScroller = this.controller.get('swipe-scroller');
 	
 	// update dict-selector model in initDictsComplete callback
 	//   setup dict style after up date dict-selector model
@@ -50,7 +56,7 @@ MainAssistant.prototype.setup = function() {
 MainAssistant.prototype.activate = function(event) {
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
-	this.controller.get("main").style.fontSize = Model.model.fontSize;
+	this.controller.get("swipe-main").style.fontSize = Model.model.fontSize;
 	//this.controller.window.PalmSystem.setWindowOrientation(Model.model.orientation);
 	this.controller.stageController.setWindowOrientation(Model.model.orientation);
 	this.searchField.select();

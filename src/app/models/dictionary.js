@@ -20,7 +20,7 @@ function Dictionary(name) {
 Dictionary.prototype.init = function(callback) {
 	this.initCallback = callback;
 	var sql = "select * from (select value as name from meta where key='name') left join (select max(rowid) as count from dict)";
-	this.db.transaction((function(transaction) {
+	this.db.readTransaction((function(transaction) {
 		transaction.executeSql(sql, [],
 							   this.handleInitSuccess.bind(this),
 							   this.handleInitError.bind(this));
@@ -52,7 +52,7 @@ Dictionary.prototype.load = function(callback) {
 	var template = '<div class="word">#{-word}</div><div class="pron">#{-pron}</div><div class="expl">#{-expl}</div><div class="sent">#{-sent}</div>';
 	this.meta = { template : template };
 	this.renderParams = { };
-	this.db.transaction((function(transaction) {
+	this.db.readTransaction((function(transaction) {
 			transaction.executeSql("select * from meta", [],
 								this.handleLoadSuccess.bind(this),
 								this.handleLoadError.bind(this));
@@ -85,7 +85,7 @@ Dictionary.prototype.lookUp = function(word, callback) {
 	var keyword = word.replace(/\'/g, "''");
 	var caseSense = Model.model.caseSensitive ? "" : " collate nocase";
 	var sqlQuery = "Select rowid,* from dict where word>=" + "'"+keyword+"'" + caseSense +" limit 1";
-	this.db.transaction((function(transaction) {
+	this.db.readTransaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
 								   this.handleLookUpSucces.bind(this),
 								   this.handleLookUpError.bind(this));
@@ -98,7 +98,7 @@ Dictionary.prototype.lookNext = function(offset, callback) {
 	if(this.rowid < 1) { this.rowid = 1; }
 	if(this.rowid > this.count) { this.rowid = this.count; }
 	var sqlQuery = "Select rowid,* from dict where rowid=" + this.rowid;
-	this.db.transaction((function(transaction) {
+	this.db.readTransaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
 								   this.handleLookUpSucces.bind(this),
 								   this.handleLookUpError.bind(this));
@@ -110,6 +110,8 @@ Dictionary.prototype.handleLookUpSucces = function(transaction, SQLResultSet) {
 		this.rowid = SQLResultSet.rows.item(0).rowid;
 		this.lookUpCallback(this.renderParams);
 		this.renderParams.object = null;
+	} else {
+		this.lookUp("", this.lookUpCallback);
 	}
 };
 Dictionary.prototype.handleLookUpError = function(transaction, error) {
