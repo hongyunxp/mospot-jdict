@@ -5,6 +5,14 @@ function MainAssistant() {
 	   that needs the scene controller should be done in the setup function below. */
 }
 
+MainAssistant.prototype.HandleDragStart = function(event) {
+	event.down.pageX = event.move.pageX;
+	event.down.clientX = event.move.clientX;
+	event.down.pageY = event.move.pageY;
+	event.down.clientY = event.move.clientY;
+	//event.down.target = event.move.target;
+};
+
 MainAssistant.prototype.setup = function() {
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	Model.init();
@@ -51,6 +59,9 @@ MainAssistant.prototype.setup = function() {
 	this.controller.listen(this.searchField, "keydown", this.enterEventListener);
 	this.controller.listen(this.controller.document, Mojo.Event.stageDeactivate, this.docDeactivateEventListener);
 	this.controller.listen("dict-selector", Mojo.Event.propertyChange, this.dictSelectEventListener);
+
+	this.dragStartEventListener = this.HandleDragStart.bindAsEventListener(this);
+	this.controller.listen(this.controller.getSceneScroller(), Mojo.Event.dragStart, this.dragStartEventListener, true);
 };
 
 MainAssistant.prototype.activate = function(event) {
@@ -71,12 +82,15 @@ MainAssistant.prototype.deactivate = function(event) {
 MainAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
+	this.controller.stopListening(this.controller.getSceneScroller(), Mojo.Event.dragStart, this.dragStartEventListener);
+
 	this.controller.stopListening(this.controller.sceneElement, Mojo.Event.keydown, this.keyDownEventListener);
 	this.controller.stopListening(this.searchField, "input", this.inputEventListener);
 	this.controller.stopListening(this.searchField, Mojo.Event.filter, this.filterEventListener);
 	this.controller.stopListening(this.searchField, "focus", this.focusEventListener);
 	this.controller.stopListening(this.searchField, "keydown", this.enterEventListener);
 	this.controller.stopListening(this.controller.document, Mojo.Event.stageDeactivate, this.docDeactivateEventListener);
+	this.controller.stopListening("dict-selector", Mojo.Event.propertyChange, this.dictSelectEventListener);
 	
 	Model.store();
 };
