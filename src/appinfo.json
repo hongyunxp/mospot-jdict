@@ -7,5 +7,6 @@
     "main": "index.html",
     "title": "jDict",
     "icon": "icon.png",
-    "copyright": "©2010 mospot.net."
+    "copyright": "©2010 mospot.net.",
+    "plug-ins": true
 }
