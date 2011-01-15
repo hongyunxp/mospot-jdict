@@ -5,11 +5,15 @@ if not exist src ( pushd .. ) else pushd .
 
 @rem Set the device you want to build for to 1
 set PRE=1
-set PIXI=0
+set PIXI=1
 set DEBUG=0
 
 @rem List your source files here
-set SRC=src\plugin.cpp
+setlocal EnableDelayedExpansion
+set SRC=
+for %%c in (src\*.c src\*.cpp) do set SRC=!SRC! %%c
+@rem setlocal DisableDelayedExpansion
+@rem set SRC=src\plugin.cpp src\dictionary.cpp
 
 @rem List the libraries needed
 set LIBS=-lSDL -lGLESv2 -lpdl -lm -Llib -lsqlite3 -lcjson
@@ -17,7 +21,7 @@ set LIBS=-lSDL -lGLESv2 -lpdl -lm -Llib -lsqlite3 -lcjson
 @rem Name your output executable
 set OUTFILE=plugin
 
-@rem set CFLAGS=-std=gnu99
+set CFLAGS=-std=gnu99 -O2
 
 if %PRE% equ 0 if %PIXI% equ 0 goto :END
 

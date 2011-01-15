@@ -14,14 +14,15 @@ MainAssistant.prototype.HandleDragStart = function(event) {
 };
 
 MainAssistant.prototype.setup = function() {
+	Mojo.Log.error("MainAssistant.prototype.setup");
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	Model.init();
 
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
-	this.initDicts();
+	$("plugin").ready = this.initDicts.bind(this);
 	
 	/* setup widgets here */
-	this.controller.setInitialFocusedElement(null);
+	this.controller.setInitialFocusedElement();
 	this.searchField = this.controller.get("search-input");
 	this.searchField.value = Model.model.word;
 	this.controller.setupWidget("dict-selector",
@@ -93,10 +94,11 @@ MainAssistant.prototype.cleanup = function(event) {
 	this.controller.stopListening("dict-selector", Mojo.Event.propertyChange, this.dictSelectEventListener);
 	
 	Model.store();
+	this.freeDicts();
 };
 
 MainAssistant.prototype.aboutToActivate = function(continueActivate) {
-	if(this.pendingInits && this.pendingInits > 0) {
+	if(true) {
 		this.continueActivate = continueActivate;
 	} else {
 		continueActivate();
@@ -124,7 +126,7 @@ MainAssistant.prototype.handleInput = function(event) {
 	}
 };
 MainAssistant.prototype.handleFilter = function(event) {
-	this.lookUp(event.filterString);
+	this.lookUp(event.filterString, Model.model.caseSensitive);
 };
 MainAssistant.prototype.handleFocus = function(event) {
 	// this.searchField.select();
@@ -133,6 +135,8 @@ MainAssistant.prototype.handleDocDeactivate = function(event) {
 	this.searchField.blur();
 };
 MainAssistant.prototype.handleDictSelect = function(event) {
+	//this.dicts[event.oldValue].free();
+	this.freeDicts();
 	this.dicts[event.value].load(this.loadDictComplete.bind(this));
 };
 MainAssistant.prototype.handleCommand = function(event) {
@@ -172,8 +176,9 @@ MainAssistant.prototype.onLookUp = function(dictRenderParams) {
 	}
 	this.controller.modelChanged(this.commandMenuModel, this);
 };
-MainAssistant.prototype.lookUp = function(word) {
-	this.dicts[Model.model.dictIndex].lookUp(word, this.onLookUp.bind(this));
+MainAssistant.prototype.lookUp = function(word, caseSense) {
+	Mojo.Log.error("MainAssistant.prototype.lookUp", word, caseSense);
+	this.dicts[Model.model.dictIndex].lookUp(word, this.onLookUp.bind(this), caseSense);
 };
 MainAssistant.prototype.onLookNext = function(dictRenderParams) {
 	Model.model.word = dictRenderParams.object.word;
@@ -186,41 +191,40 @@ MainAssistant.prototype.lookNext = function(offset) {
 	this.dicts[Model.model.dictIndex].lookNext(offset, this.onLookNext.bind(this));
 };
 //////////////////////
-MainAssistant.prototype.loadDictComplete = function(meta) {
-	// setup styles
-	this.controller.get("dict-main").innerHTML = "";
-	this.lookUp(Model.model.word);
-	//this.controller.get("dict-style").outerHTML = '<style type="text/css" id="dict-style">'+ dict.meta.styles +'</style>';
-	this.controller.get("dict-style").outerHTML = this.controller.get("dict-style").outerHTML.replace(/(<style.*?>).*?(<\/style>)/, "$1"+meta.styles+"$2");
-};
-MainAssistant.prototype.initDictsComplete = function() {
-	// wait untill all dicts inited
-	--this.pendingInits;
-	if(this.pendingInits > 0) { return; }
-	
-	// all dicts inited
-	delete this.pendingInits;
-
-	var i, j;
-
-	// remove invalid dicts
-	for(i = 0; i < this.dicts.length; ++i) {
-		if(!this.dicts[i].db) { this.dicts[i] = null; }
-	}
-	
-	// setup dict_selector model
-	for(i = 0, j = 0; i < this.dicts.length; ++i) {
-		if(this.dicts[i]) {
-			this.dictNames[j] = { label: this.dicts[i].name, value: i };
-			++j;
+MainAssistant.prototype.freeDicts = function() {
+	for(var i = 0; i < this.dicts.length; ++i) {
+		if(this.dicts[i].db) {
+			this.dicts[i].free();
 		}
 	}
+};
+MainAssistant.prototype.loadDictComplete = function(meta) {
+	// setup styles
+	this.controller.get("dict-main").innerHTML = "&nbsp;";
+	this.lookUp(Model.model.word, Model.model.caseSensitive);
+	this.controller.get("dict-style").outerHTML = this.controller.get("dict-style").outerHTML
+		.replace(/(<style.*?>).*?(<\/style>)/, "$1"+meta.styles+"$2");
+};
+MainAssistant.prototype.queryDictsComplete = function(dicts) {
+	Mojo.Log.error("queryDictsComplete");
+	_dumpObj(dicts);
+	this.dicts = this.dicts.concat(dicts);
+
+	--this.pendingLoads;
+	if(this.pendingLoads > 0) { return; }
+
+	// setup dict_selector model
+	for(var i = 0; i < this.dicts.length; ++i) {
+		this.dictNames[i] = { label: this.dicts[i].name, value: i };
+	}
 	// if curent dict not valid, use the first
-	if(Model.model.dictIndex < 0 || Model.model.dictIndex > this.dicts.length || !this.dicts[Model.model.dictIndex]) {
-		Model.model.dictIndex = this.dictNames[0].value;
+	if(Model.model.dictIndex < 0 || Model.model.dictIndex >= this.dicts.length) {
+		Model.model.dictIndex = 0;
 	}
 	this.controller.modelChanged(Model.model, this);
 	
+	Mojo.Log.error("load:", Model.model.dictIndex);
+	_dumpObj(this.dicts[Model.model.dictIndex]);
 	// load dict meta and render parameters
 	this.dicts[Model.model.dictIndex].load(this.loadDictComplete.bind(this));
 	
@@ -231,12 +235,9 @@ MainAssistant.prototype.initDictsComplete = function() {
 	}
 };
 MainAssistant.prototype.initDicts = function() {
+	Mojo.Log.error("MainAssistant.prototype.initDicts");
 	this.dicts = [];
-	this.MAX_DICTS = 7;
-	this.pendingInits = this.MAX_DICTS;
-	
-	for(var i = 0; i < this.MAX_DICTS; ++i) {
-		this.dicts[i] = new Dictionary("dict"+i);
-		this.dicts[i].init(this.initDictsComplete.bind(this));
-	}
+	this.pendingLoads = 2;
+	queryDicts(this.queryDictsComplete.bind(this));
+	setTimeout(function() { queryDictsC(this.queryDictsComplete.bind(this)); }.bind(this), 0);
 };

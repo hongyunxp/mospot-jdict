@@ -10,48 +10,51 @@
    model { dictIndex, word, }
 */
 
-function Dictionary(name) {
-	this.db = openDatabase("ext:"+name, 1);
-/*	this.name = null;
+function Dictionary(filename) {
+	this.filename = "ext:"+filename;
+/*	this.db = undefined;
+	this.name = undefined;
 	this.count = 0;
 	this.meta = {};
 	this.rowid = 0;*/
 }
-Dictionary.prototype.init = function(callback) {
-	this.initCallback = callback;
+Dictionary.prototype.peek = function(callback) {
+	this.peekCallback = callback;
+	this.db = openDatabase(this.filename, 1);
 	var sql = "select * from (select value as name from meta where key='name') left join (select max(rowid) as count from dict)";
 	this.db.readTransaction((function(transaction) {
 		transaction.executeSql(sql, [],
-							   this.handleInitSuccess.bind(this),
-							   this.handleInitError.bind(this));
+							   this.handlePeekSuccess.bind(this),
+							   this.handlePeekError.bind(this));
 	}).bind(this));
 };
-Dictionary.prototype.handleInitSuccess = function(transaction, SQLResultSet) {
+Dictionary.prototype.handlePeekSuccess = function(transaction, SQLResultSet) {
 	if(SQLResultSet.rows.length > 0) {
 		var item = SQLResultSet.rows.item(0);
 		this.name = item.name;
 		this.count = item.count;
+		this.peekCallback(this);
 	} else {
-		this.db = null;
+		this.peekCallback();
 	}
-	this.initCallback(this);
-	delete this.initCallback;
+	delete this.peekCallback;
 };
-Dictionary.prototype.handleInitError = function(dict, transaction, error) {
-	this.db = null;
-	this.initCallback();
-	delete this.initCallback;
+Dictionary.prototype.handlePeekError = function(dict, transaction, error) {
+	this.db = undefined;
+	this.peekCallback();
+	delete this.peekCallback;
 };
 ///////////
-Dictionary.prototype.release = function() {
-
+Dictionary.prototype.free = function() {
+	delete this.db;
 };
 Dictionary.prototype.load = function(callback) {
 	this.loadCallback = callback;
 	// dict meta and render parameters
-	var template = '<div class="word">#{-word}</div><div class="pron">#{-pron}</div><div class="expl">#{-expl}</div><div class="sent">#{-sent}</div>';
+	var template = '<div class="word">#{-word}</div><div class="expl">#{-expl}</div>';
 	this.meta = { template : template };
 	this.renderParams = { };
+	this.db = this.db || openDatabase(this.filename, 1);
 	this.db.readTransaction((function(transaction) {
 			transaction.executeSql("select * from meta", [],
 								this.handleLoadSuccess.bind(this),
@@ -79,12 +82,12 @@ Dictionary.prototype.handleLoadError = function(transaction, error) {
 	delete this.loadCallback;
 };
 //////////
-Dictionary.prototype.lookUp = function(word, callback) {
+Dictionary.prototype.lookUp = function(word, callback, caseSense) {
 	this.lookUpCallback = callback;
 	
 	var keyword = word.replace(/\'/g, "''");
-	var caseSense = Model.model.caseSensitive ? "" : " collate nocase";
-	var sqlQuery = "Select rowid,* from dict where word>=" + "'"+keyword+"'" + caseSense +" limit 1";
+	var caseCollate = caseSense ? "" : " collate nocase";
+	var sqlQuery = "Select rowid,* from dict where word>=" + "'"+keyword+"'" + caseCollate +" limit 1";
 	this.db.readTransaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
 								   this.handleLookUpSucces.bind(this),
@@ -96,7 +99,7 @@ Dictionary.prototype.lookNext = function(offset, callback) {
 	
 	this.rowid = parseInt(this.rowid, 10) + offset;
 	if(this.rowid < 1) { this.rowid = 1; }
-	if(this.rowid > this.count) { this.rowid = this.count; }
+	else if(this.rowid > this.count) { this.rowid = this.count; }
 	var sqlQuery = "Select rowid,* from dict where rowid=" + this.rowid;
 	this.db.readTransaction((function(transaction) {
 			transaction.executeSql(sqlQuery, [],
@@ -109,7 +112,7 @@ Dictionary.prototype.handleLookUpSucces = function(transaction, SQLResultSet) {
 		this.renderParams.object = SQLResultSet.rows.item(0);
 		this.rowid = SQLResultSet.rows.item(0).rowid;
 		this.lookUpCallback(this.renderParams);
-		this.renderParams.object = null;
+		this.renderParams.object = undefined;
 	} else {
 		this.lookUp("", this.lookUpCallback);
 	}
@@ -119,3 +122,26 @@ Dictionary.prototype.handleLookUpError = function(transaction, error) {
 	this.lookUpCallback();
 };
 
+
+var handlePeek = function(dict) {
+	// wait untill all dicts inited
+	if(dict) {
+		this.dicts.push(dict);
+	}
+	
+	--this.pendingInits;
+	if(this.pendingInits > 0) { return; }
+	
+	// all dicts inited
+	delete this.pendingInits;
+
+	this.queryDictsCallback(this.dicts);
+};
+var queryDicts = function(callback) {
+	var queryData = { dicts: [], pendingInits: 7, queryDictsCallback: callback };
+	
+	for(var i = 0; i < queryData.pendingInits; ++i) {
+		var dict = new Dictionary("dict"+i);
+		dict.peek(handlePeek.bind(queryData));
+	}
+};
