@@ -11,9 +11,6 @@ HelpAssistant.prototype.setup = function() {
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
 	
 	/* setup widgets here */
-	this.searchField = this.controller.get("search-input");
-	this.enterEventListener = this.handleEnter.bindAsEventListener(this);
-	this.controller.listen(this.searchField, "keydown", this.enterEventListener);
 	
 	/* add event handlers to listen to events from widgets */
 };
@@ -31,29 +28,4 @@ HelpAssistant.prototype.deactivate = function(event) {
 HelpAssistant.prototype.cleanup = function(event) {
 	/* this function should do any cleanup needed before the scene is destroyed as 
 	   a result of being popped off the scene stack */
-	this.controller.stopListening(this.searchField, "keydown", this.enterEventListener);
-};
-HelpAssistant.prototype.onLookUp = function(expl) {
-	var row = eval('('+expl+')');
-	$("expl").innerHTML = row.expl;
-};
-
-/*HelpAssistant.prototype.wrap = function(name, callback) {
-	$("plugin")[name] = callback.wrap(
-		function(original) {
-			delete $("plugin")[name];
-			return original.apply(this, $A(arguments).slice(1));
-		});
-};*/
-HelpAssistant.prototype.lookUp = function(word, callback) {
-	$("plugin").queryDicts(undefined, "onLookUp");
-	
-	$("plugin").onLookUp = callback;
-	//$("plugin").lookUp(word, "onLookUp");
-};
-HelpAssistant.prototype.handleEnter = function(event) {
-	eve = event;
-	if (Mojo.Char.isEnterKey(event.keyCode)) {
-		this.lookUp(this.searchField.value, this.onLookUp.bind(eve));
-	}
 };
