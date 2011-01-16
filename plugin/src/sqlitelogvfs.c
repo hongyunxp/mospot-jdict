@@ -146,26 +146,26 @@ static int XClose(sqlite3_file* sqFileP)
 }
 static int XRead(sqlite3_file* sqFileP, void* pBuf, int iAmt, sqlite3_int64 iOfst)
 {
-	syslog(LOG_INFO, "+XRead(sqFileP: 0x%x, pBuf: 0x%x, iAmt: %d, iOfst: %d)", sqFileP, pBuf, iAmt, (unsigned long)iOfst);
+	syslog(LOG_INFO, "+XRead(sqFileP: 0x%x, pBuf: 0x%x, iAmt: %d, iOfst: %lld)", sqFileP, pBuf, iAmt, (long long)iOfst);
 	struct LogFile* logFileP = (struct LogFile*)sqFileP;
 	int ret = logFileP->pOldFile->pMethods->xRead(logFileP->pOldFile, pBuf, iAmt, iOfst);
-	syslog(LOG_INFO, "-XRead(pBuf: 0x%x, iAmt: %d, iOfst: %d): %d", pBuf, iAmt, (unsigned long)iOfst, ret);
+	syslog(LOG_INFO, "-XRead(pBuf: 0x%x, iAmt: %d, iOfst: %lld): %d", pBuf, iAmt, (long long)iOfst, ret);
 	return ret;
 }
 static int XWrite(sqlite3_file* sqFileP, const void* pBuf, int iAmt, sqlite3_int64 iOfst)
 {
-	syslog(LOG_INFO, "+XWrite(sqFileP: 0x%x, pBuf: 0x%x, iAmt: %d, iOfst: %d)", sqFileP, pBuf, iAmt, (unsigned long)iOfst);
+	syslog(LOG_INFO, "+XWrite(sqFileP: 0x%x, pBuf: 0x%x, iAmt: %d, iOfst: %lld)", sqFileP, pBuf, iAmt, (long long)iOfst);
 	struct LogFile* logFileP = (struct LogFile*)sqFileP;
 	int ret = logFileP->pOldFile->pMethods->xWrite(logFileP->pOldFile, pBuf, iAmt, iOfst);
-	syslog(LOG_INFO, "-XWrite(pBuf: 0x%x, iAmt: %d, iOfst: %d): %d", pBuf, iAmt, (unsigned long)iOfst, ret);
+	syslog(LOG_INFO, "-XWrite(pBuf: 0x%x, iAmt: %d, iOfst: %lld): %d", pBuf, iAmt, (long long)iOfst, ret);
 	return ret;
 }
 static int XTruncate(sqlite3_file* sqFileP, sqlite3_int64 size)
 {
-	syslog(LOG_INFO, "+XTruncate(sqFileP: 0x%x, size: %d)", sqFileP, (unsigned long)size);
+	syslog(LOG_INFO, "+XTruncate(sqFileP: 0x%x, size: %lld)", sqFileP, (long long)size);
 	struct LogFile* logFileP = (struct LogFile*)sqFileP;
 	int ret = logFileP->pOldFile->pMethods->xTruncate(logFileP->pOldFile, size);
-	syslog(LOG_INFO, "-XTruncate(size: %d): %d", (unsigned long)size, ret);
+	syslog(LOG_INFO, "-XTruncate(size: %lld): %d", (long long)size, ret);
 	return ret;	
 }
 static int XSync(sqlite3_file* sqFileP, int flags)
@@ -181,7 +181,7 @@ static int XFileSize(sqlite3_file* sqFileP, sqlite3_int64 *pSize)
 	syslog(LOG_INFO, "+XFileSize(sqFileP: 0x%x, pSize: 0x%x)", sqFileP, pSize);
 	struct LogFile* logFileP = (struct LogFile*)sqFileP;
 	int ret = logFileP->pOldFile->pMethods->xFileSize(logFileP->pOldFile, pSize);
-	syslog(LOG_INFO, "-XFileSize(*pSize: %d): %d", *pSize, ret);
+	syslog(LOG_INFO, "-XFileSize(*pSize: %lld): %d", (long long)*pSize, ret);
 	return ret;	
 }
 static int XLock(sqlite3_file* sqFileP, int locktype)
@@ -374,7 +374,7 @@ static int XCurrentTimeInt64(sqlite3_vfs* vfsP, sqlite3_int64* timeP)
 	syslog(LOG_INFO, "+XCurrentTimeInt64(vfsP: 0x%x, timeP: 0x%x)", vfsP, timeP);
 	sqlite3_vfs* defVfsP = (sqlite3_vfs*)vfsP->pAppData;
 	int ret = defVfsP->xCurrentTimeInt64(defVfsP, timeP);
-	syslog(LOG_INFO, "-XCurrentTimeInt64(*timeP: %d): %d", (unsigned long)*timeP, ret);
+	syslog(LOG_INFO, "-XCurrentTimeInt64(*timeP: %lld): %d", (long long)*timeP, ret);
 	return ret;
 }
 /* Methods above are valid for version 2 */
