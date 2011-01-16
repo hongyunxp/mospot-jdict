@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include "json-c/json.h"
 
+#include "sqlitelogvfs.h"
 #include "sqlitezipvfs.h"
 #include "dictionary.h"
 
@@ -152,6 +153,7 @@ int main(int argc, char** argv)
     syslog(LOG_INFO, "PDL_Init ^^^");
     
     ZipVfsRegister(1);
+    LogVfsRegister(1);
 
     // register the js callback
     syslog(LOG_INFO, "PDL_RegisterJSHandler vvv");
@@ -221,6 +223,7 @@ END:
 
     syslog(LOG_INFO, "plugin exit.vvv");
     
+    LogVfsUnregister();
     ZipVfsUnregister();
     
     // Cleanup
