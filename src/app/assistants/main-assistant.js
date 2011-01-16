@@ -66,6 +66,7 @@ MainAssistant.prototype.setup = function() {
 };
 
 MainAssistant.prototype.activate = function(event) {
+	Mojo.Log.error("MainAssistant.prototype.activate");
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
 	this.controller.get("swipe-main").style.fontSize = Model.model.fontSize;
@@ -98,6 +99,7 @@ MainAssistant.prototype.cleanup = function(event) {
 };
 
 MainAssistant.prototype.aboutToActivate = function(continueActivate) {
+	Mojo.Log.error("MainAssistant.prototype.aboutToActivate");
 	if(true) {
 		this.continueActivate = continueActivate;
 	} else {
@@ -192,9 +194,11 @@ MainAssistant.prototype.lookNext = function(offset) {
 };
 //////////////////////
 MainAssistant.prototype.freeDicts = function() {
-	for(var i = 0; i < this.dicts.length; ++i) {
-		if(this.dicts[i].db) {
-			this.dicts[i].free();
+	if(this.dicts) {
+		for(var i = 0; i < this.dicts.length; ++i) {
+			if(this.dicts[i].db) {
+				this.dicts[i].free();
+			}
 		}
 	}
 };
@@ -207,8 +211,8 @@ MainAssistant.prototype.loadDictComplete = function(meta) {
 };
 MainAssistant.prototype.queryDictsComplete = function(dicts) {
 	Mojo.Log.error("queryDictsComplete");
-	_dumpObj(dicts);
 	this.dicts = this.dicts.concat(dicts);
+	_dumpObj(this.dicts);
 
 	--this.pendingLoads;
 	if(this.pendingLoads > 0) { return; }

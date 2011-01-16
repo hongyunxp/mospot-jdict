@@ -45,3 +45,8 @@
 	float: left;
 	width: 33.34%;
 }
+/*
+div {
+	-webkit-user-modify: read-only;
+	-webkit-user-select: text;
+}*/

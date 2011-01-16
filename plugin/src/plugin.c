@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include "json-c/json.h"
 
+#include "sqlitezipvfs.h"
 #include "dictionary.h"
 
 #define EVENT_READY 720
@@ -143,16 +144,14 @@ int main(int argc, char** argv)
     openlog("net.mospot.webos.jdict", 0, LOG_USER);
     syslog(LOG_INFO, "plugin start");
     
-    if(argc == 2 && strcmp(argv[1], "queryDict") == 0)
-    {
-        QueryDicts();
-    }
     syslog(LOG_INFO, "SDL_Init vvv");
     SDL_Init(SDL_INIT_VIDEO);
     syslog(LOG_INFO, "SDL_Init ^^^");
     syslog(LOG_INFO, "PDL_Init vvv");
     PDL_Init(0);
     syslog(LOG_INFO, "PDL_Init ^^^");
+    
+    ZipVfsRegister(1);
 
     // register the js callback
     syslog(LOG_INFO, "PDL_RegisterJSHandler vvv");
@@ -220,6 +219,10 @@ int main(int argc, char** argv)
 
 END:
 
+    syslog(LOG_INFO, "plugin exit.vvv");
+    
+    ZipVfsUnregister();
+    
     // Cleanup
     PDL_Quit();
     SDL_Quit();
