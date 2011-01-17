@@ -14,6 +14,7 @@
 
 #include "sqlitelogvfs.h"
 #include "sqlitezipvfs.h"
+#include "sqlitecvfs.h"
 #include "dictionary.h"
 
 #define EVENT_READY 720
@@ -152,7 +153,7 @@ int main(int argc, char** argv)
     PDL_Init(0);
     syslog(LOG_INFO, "PDL_Init ^^^");
     
-    ZipVfsRegister(1);
+    CVfsRegister(1);
     LogVfsRegister(1);
 
     // register the js callback
@@ -224,7 +225,7 @@ END:
     syslog(LOG_INFO, "plugin exit.vvv");
     
     LogVfsUnregister();
-    ZipVfsUnregister();
+    CVfsUnregister();
     
     // Cleanup
     PDL_Quit();

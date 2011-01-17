@@ -164,30 +164,36 @@ MainAssistant.prototype.handleCommand = function(event) {
 
 };
 //////////////////
-MainAssistant.prototype.onLookUp = function(dictRenderParams) {
-	this.controller.get("dict-main").innerHTML = Mojo.View.render(dictRenderParams);
-	this.controller.getSceneScroller().mojo.revealTop();
-
-	if(dictRenderParams.object.rowid <= 1) {
-		this.commandMenuModel.items[1].disabled = true;
-	} else if(dictRenderParams.object.rowid >= this.dicts[Model.model.dictIndex].count) {
-		this.commandMenuModel.items[2].disabled = true;
+MainAssistant.prototype.onLookUp = function(row) {
+	if(row) {
+		this.dictRenderParams.object = row;
+		this.controller.get("dict-main").innerHTML = Mojo.View.render(this.dictRenderParams);
+		this.controller.getSceneScroller().mojo.revealTop();
+	
+		if(this.dictRenderParams.object.rowid <= 1) {
+			this.commandMenuModel.items[1].disabled = true;
+		} else if(this.dictRenderParams.object.rowid >= this.dicts[Model.model.dictIndex].count) {
+			this.commandMenuModel.items[2].disabled = true;
+		} else {
+			this.commandMenuModel.items[1].disabled = false;
+			this.commandMenuModel.items[2].disabled = false;
+		}
+		this.controller.modelChanged(this.commandMenuModel, this);
+		this.dictRenderParams.object = undefined;
 	} else {
-		this.commandMenuModel.items[1].disabled = false;
-		this.commandMenuModel.items[2].disabled = false;
+		this.lookUp("");
 	}
-	this.controller.modelChanged(this.commandMenuModel, this);
 };
 MainAssistant.prototype.lookUp = function(word, caseSense) {
 	Mojo.Log.error("MainAssistant.prototype.lookUp", word, caseSense);
 	this.dicts[Model.model.dictIndex].lookUp(word, this.onLookUp.bind(this), caseSense);
 };
-MainAssistant.prototype.onLookNext = function(dictRenderParams) {
-	Model.model.word = dictRenderParams.object.word;
+MainAssistant.prototype.onLookNext = function(row) {
+	Model.model.word = row.word;
 	this.searchField.value = Model.model.word;
 	this.searchField.select();
 	this.searchField.blur();
-	this.onLookUp(dictRenderParams);
+	this.onLookUp(row);
 };
 MainAssistant.prototype.lookNext = function(offset) {
 	this.dicts[Model.model.dictIndex].lookNext(offset, this.onLookNext.bind(this));
@@ -203,6 +209,10 @@ MainAssistant.prototype.freeDicts = function() {
 	}
 };
 MainAssistant.prototype.loadDictComplete = function(meta) {
+	// setup render params
+	this.dictRenderParams = { inline: meta.template,
+		formatters: meta.formatters? eval('('+meta.formatters+')') : undefined
+	};
 	// setup styles
 	this.controller.get("dict-main").innerHTML = "&nbsp;";
 	this.lookUp(Model.model.word, Model.model.caseSensitive);

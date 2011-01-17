@@ -3,7 +3,6 @@
 		name,
 		count,
 		meta { name, version, info, template, formatters, styles, ... },
-		renderParams { object, meta.template, meta.formatters },
 		rowid
 	}
 			
@@ -44,11 +43,6 @@ DictionaryC.prototype.load = function(callback) {
 DictionaryC.prototype.onGetMeta = function(jMeta) {
 	// update dict meta
 	this.meta = eval('('+jMeta+')');
-	// setup render params
-	this.renderParams = { inline: this.meta.template,
-		formatters: this.meta.formatters? eval('('+this.meta.formatters+')') : undefined
-	};
-	
 	setTimeout(function() {
 		this.loadCallback(this.meta); 
 		delete this.loadCallback;
@@ -58,14 +52,12 @@ DictionaryC.prototype.onGetMeta = function(jMeta) {
 //////////
 DictionaryC.prototype.onLookUp = function(jRow) {
 	var row = eval('('+jRow+')');
-	this.renderParams.object = row;
 	setTimeout(function() {
 		if(row) {
 			this.rowid = row.rowid;
-			this.lookUpCallback(this.renderParams);
-			this.renderParams.object = undefined;
+			this.lookUpCallback(row);
 		} else {
-			this.lookUp("", this.lookUpCallback);
+			this.lookUpCallback();
 		}
 	}.bind(this), 0);
 };

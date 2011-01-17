@@ -113,7 +113,7 @@ const char* LogVfsGetName()
 int LogVfsRegister(int makeDflt)
 {
 	syslog(LOG_INFO, "+LogVfsRegister(makeDflt: %d)", makeDflt);
-	syslog(LOG_INFO, "+LogVfsRegister: sizeof: sqlite3_int64: %d, long: %d, long long: %d, size_t: %d",
+	syslog(LOG_INFO, "=LogVfsRegister: sizeof: sqlite3_int64: %d, long: %d, long long: %d, size_t: %d",
 			sizeof(sqlite3_int64), sizeof(long), sizeof(long long), sizeof(size_t));
 	
 	sqlite3_vfs* defVfsP = sqlite3_vfs_find(NULL);
@@ -273,13 +273,21 @@ static int XOpen(sqlite3_vfs* vfsP, const char *zName, sqlite3_file* sqFileP, in
 	sqlite3_vfs* defVfsP = (sqlite3_vfs*)vfsP->pAppData;
 	
 	struct LogFile* logFileP = (struct LogFile*)sqFileP;
-	logFileP->pMethods = &g_logIoMethods;
-	
 	logFileP->pOldFile = malloc(defVfsP->szOsFile);
 
 	int ret = defVfsP->xOpen(defVfsP, zName, logFileP->pOldFile, flags, pOutFlags);
-	((sqlite3_io_methods*)(logFileP->pMethods))->iVersion = logFileP->pOldFile->pMethods->iVersion;
-	syslog(LOG_INFO, "=XOpen: logFileP->pMethods->iVersion: %d", logFileP->pMethods->iVersion);
+	syslog(LOG_INFO, "=XOpen: pOldFile->pMethods: 0x%x, pOldFile->pMethods->iVersion: %d",
+		   logFileP->pMethods, logFileP->pMethods ? logFileP->pMethods->iVersion : 0);
+	if(logFileP->pOldFile->pMethods)
+	{
+		logFileP->pMethods = &g_logIoMethods;
+		((sqlite3_io_methods*)(logFileP->pMethods))->iVersion = logFileP->pOldFile->pMethods->iVersion;
+	}
+	else
+	{
+		free(logFileP->pOldFile);
+	}
+		
 	syslog(LOG_INFO, "-XOpen(zName: %s, flags: 0x%x, *pOutFlags: 0x%x): %d", zName, flags, *pOutFlags, ret);
 	return ret;
 }

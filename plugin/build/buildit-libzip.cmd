@@ -1,4 +1,4 @@
-@echo off
+rem @echo off
 
 @rem if run in the windows script folder, change to parent
 if not exist src ( pushd .. ) else pushd .
@@ -11,17 +11,16 @@ set DEBUG=0
 @rem List your source files here
 setlocal EnableDelayedExpansion
 set SRC=
-for %%c in (src\*.c src\*.cpp) do set SRC=!SRC! %%c
+for %%c in (src\libzip\lib\*.c src\libzip\lib\*.cpp) do set SRC=!SRC! %%c
 @rem setlocal DisableDelayedExpansion
-@rem set SRC=src\plugin.cpp src\dictionary.cpp
 
 @rem List the libraries needed
-set LIBS=-lSDL -lGLESv2 -lpdl -lm -Llib -lsqlite3 -lcjson -lzip -lz
+set LIBS= -lm -Llib -lcjson -lz
 
 @rem Name your output executable
-set OUTFILE=plugin
+set OUTFILE=libzip.a
 
-set CFLAGS=-std=gnu99 -O2
+set CFLAGS=-std=gnu99 -O2 -Isrc\zlib -Isrc\libzip\lib -Isrc\libzip
 
 if %PRE% equ 0 if %PIXI% equ 0 goto :END
 
@@ -41,7 +40,8 @@ if %PIXI% equ 1 (
 
 echo %DEVICEOPTS%
 
-arm-none-linux-gnueabi-gcc %DEVICEOPTS% %CFLAGS% -o %OUTFILE% %SRC% "-I%PALMPDK%\include" "-I%PALMPDK%\include\SDL" "-L%PALMPDK%\device\lib" -Wl,--allow-shlib-undefined %LIBS%
+arm-none-linux-gnueabi-gcc -c %DEVICEOPTS% %CFLAGS% %SRC% "-I%PALMPDK%\include" "-I%PALMPDK%rem \include\SDL" "-L%PALMPDK%\device\lib" -Wl,--allow-shlib-undefined %LIBS%
+arm-none-linux-gnueabi-ar rcs %OUTFILE% *.o
 
 popd
 goto :EOF

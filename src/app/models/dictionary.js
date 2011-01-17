@@ -3,7 +3,6 @@
 		name,
 		count,
 		meta { name, version, info, template, formatters, styles, ... },
-		renderParams { object, meta.template, meta.formatters },
 		rowid
 	}
 			
@@ -53,7 +52,6 @@ Dictionary.prototype.load = function(callback) {
 	// dict meta and render parameters
 	var template = '<div class="word">#{-word}</div><div class="expl">#{-expl}</div>';
 	this.meta = { template : template };
-	this.renderParams = { };
 	this.db = this.db || openDatabase(this.filename, 1);
 	this.db.readTransaction((function(transaction) {
 			transaction.executeSql("select * from meta", [],
@@ -68,11 +66,6 @@ Dictionary.prototype.handleLoadSuccess = function(transaction, SQLResultSet) {
 		var item = SQLResultSet.rows.item(i);
 		this.meta[item.key] = item.value;
 	}
-	// setup render params
-	this.renderParams = { inline: this.meta.template,
-		formatters: this.meta.formatters? eval('('+this.meta.formatters+')') : undefined
-	};
-	
 	this.loadCallback(this.meta);
 	delete this.loadCallback;
 };
@@ -109,12 +102,10 @@ Dictionary.prototype.lookNext = function(offset, callback) {
 };
 Dictionary.prototype.handleLookUpSucces = function(transaction, SQLResultSet) {
 	if(SQLResultSet.rows.length > 0) {
-		this.renderParams.object = SQLResultSet.rows.item(0);
 		this.rowid = SQLResultSet.rows.item(0).rowid;
-		this.lookUpCallback(this.renderParams);
-		this.renderParams.object = undefined;
+		this.lookUpCallback(SQLResultSet.rows.item(0));
 	} else {
-		this.lookUp("", this.lookUpCallback);
+		this.lookUpCallback();
 	}
 };
 Dictionary.prototype.handleLookUpError = function(transaction, error) {
