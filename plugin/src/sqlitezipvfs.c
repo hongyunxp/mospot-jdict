@@ -142,7 +142,7 @@ static int XRead(sqlite3_file* sqFileP, void* pBuf, int iAmt, sqlite3_int64 iOfs
 	struct zip_file* file = zip_fopen_index(zipFileP->zipP, q, 0) ;
 	if(file == NULL) return SQLITE_IOERR_READ;
 	// seek by read and drop
-	static char tempBuf[4096];
+	static char tempBuf[2*1024];
 	while(p > sizeof(tempBuf))
 	{
 		if(zip_fread(file, tempBuf, sizeof(tempBuf)) != sizeof(tempBuf))

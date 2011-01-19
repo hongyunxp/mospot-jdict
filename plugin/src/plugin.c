@@ -55,8 +55,10 @@ static void CallJSAndPutJSON(const char* jsFunc, struct json_object* json)
 ////////////////////////////////////////////////
 static void DoLookUp(struct Dict* dictP, const char* word, int caseSense)
 {
+    syslog(LOG_INFO, "+DoLookUp(dictP: 0x%x, word: %s, caseSens: %d)", dictP, word, caseSense);
     struct json_object* jRow = DictLookUp(dictP, word, caseSense);
     CallJSAndPutJSON("onLookUp", jRow);
+    syslog(LOG_INFO, "-DoLookUp(dictP: 0x%x, word: %s, caseSens: %d)", dictP, word, caseSense);
 }
 /* { "rowid": 39461, "word": "hello", "expl": "used as a greeting" (, "column": "value")* } */
 static PDL_bool JS_LookUp(PDL_JSParameters *params)
@@ -71,7 +73,7 @@ static PDL_bool JS_LookUp(PDL_JSParameters *params)
 }
 static void DoLookUpById(struct Dict* dictP, int id)
 {
-    syslog(LOG_INFO, "+DoLookUpById(dictP: 0x%x, id: %d), dictP, id");
+    syslog(LOG_INFO, "+DoLookUpById(dictP: 0x%x, id: %d)", dictP, id);
     struct json_object* jRow = DictLookUpById(dictP, id);
     CallJSAndPutJSON("onLookUpById", jRow);
     syslog(LOG_INFO, "-DoLookUpById end");
@@ -104,9 +106,7 @@ static PDL_bool JS_GetMeta(PDL_JSParameters *params)
 /////////////////////////////////////////
 static struct Dict* DoOpenDict(const char* filename)
 {
-    syslog(LOG_INFO, "+DoOpenDict(%s)", filename);
     return DictOpen(filename);
-    syslog(LOG_INFO, "-DoOpenDict");
 }
 static PDL_bool JS_OpenDict(PDL_JSParameters *params)
 {
@@ -123,14 +123,14 @@ static PDL_bool JS_OpenDict(PDL_JSParameters *params)
 /////////////////////////////////////////
 static void DoCloseDict(struct Dict* dictP)
 {
-    syslog(LOG_INFO, "+DoCloseDict(0x%x)", dictP);
     DictClose(dictP);
-    syslog(LOG_INFO, "-DoCloseDict");
 }
 static PDL_bool JS_CloseDict(PDL_JSParameters *params)
 {
     int dictP = PDL_GetJSParamInt(params, 0);
+    syslog(LOG_INFO, "+JS_CloseDict(dictP: %d", dictP);
     DoCloseDict((struct Dict*)dictP);
+    syslog(LOG_INFO, "-JS_CloseDict");
     return PDL_TRUE;
 }
 /////////////////////////////////////////

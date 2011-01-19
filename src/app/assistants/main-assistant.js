@@ -16,10 +16,12 @@ MainAssistant.prototype.HandleDragStart = function(event) {
 MainAssistant.prototype.setup = function() {
 	Mojo.Log.error("MainAssistant.prototype.setup");
 	/* this function is for setup tasks that have to happen when the scene is first created */
+	this.pendingLoads = 1;
+	$("plugin").ready = this.initDicts.bind(this);
+
 	Model.init();
 
 	/* use Mojo.View.render to render view templates and add them to the scene, if needed */
-	$("plugin").ready = this.initDicts.bind(this);
 	
 	/* setup widgets here */
 	this.controller.setInitialFocusedElement();
@@ -99,8 +101,8 @@ MainAssistant.prototype.cleanup = function(event) {
 };
 
 MainAssistant.prototype.aboutToActivate = function(continueActivate) {
-	Mojo.Log.error("MainAssistant.prototype.aboutToActivate");
-	if(true) {
+	Mojo.Log.error("MainAssistant.prototype.aboutToActivate", this.pendingLoads);
+	if(this.pendingLoads) {
 		this.continueActivate = continueActivate;
 	} else {
 		continueActivate();
@@ -226,6 +228,7 @@ MainAssistant.prototype.queryDictsComplete = function(dicts) {
 
 	--this.pendingLoads;
 	if(this.pendingLoads > 0) { return; }
+	delete this.pendingLoads;
 
 	// setup dict_selector model
 	for(var i = 0; i < this.dicts.length; ++i) {
@@ -246,6 +249,7 @@ MainAssistant.prototype.queryDictsComplete = function(dicts) {
 	if(this.continueActivate) {
 		this.continueActivate();
 		delete this.continueActivate;
+		Mojo.Log.error("this.continueActivate()");
 	}
 };
 MainAssistant.prototype.initDicts = function() {
