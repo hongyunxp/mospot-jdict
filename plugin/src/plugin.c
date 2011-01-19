@@ -38,12 +38,19 @@ static int PushUserEvent(int code, void* data1, void* data2)
 ////////////////////////////////////////////
 static void CallJSAndPutJSON(const char* jsFunc, struct json_object* json)
 {
-    syslog(LOG_INFO, "CallJSAndPutJSON(%s, 0x%x)", jsFunc, json);
+    syslog(LOG_INFO, "+CallJSAndPutJSON(%s, 0x%x)", jsFunc, json);
     const char* jstring = json ? json_object_to_json_string(json) : "undefined";
-    syslog(LOG_INFO, "CallJSAndPutJSON: jstring: %s", jstring);
-    PDL_CallJS(jsFunc, &jstring, 1);
+    syslog(LOG_INFO, "=CallJSAndPutJSON: strlen(jstring): %d, jstring: %s", strlen(jstring), jstring);
+    // workaround for callback get called too early
+    int err = PDL_CallJS(jsFunc, &jstring, 1);
+    while(err != 0)
+    {
+        syslog(LOG_ERR, "PDL_CallJS(%s): %d: %s", jsFunc, err, PDL_GetError());
+        usleep(2000);
+        err = PDL_CallJS(jsFunc, &jstring, 1);
+    }
     json_object_put(json);
-    syslog(LOG_INFO, "CallJSAndPutJSON end");
+    syslog(LOG_INFO, "-CallJSAndPutJSON");
 }
 ////////////////////////////////////////////////
 static void DoLookUp(struct Dict* dictP, const char* word, int caseSense)
@@ -57,65 +64,68 @@ static PDL_bool JS_LookUp(PDL_JSParameters *params)
     int dictP = PDL_GetJSParamInt(params, 0);
     const char* word = PDL_GetJSParamString(params, 1);
     int caseSense = PDL_GetJSParamInt(params, 2);
-    syslog(LOG_INFO, "JS_LookUp(0x%x, %s, %d)", dictP, word, caseSense);
+    syslog(LOG_INFO, "+JS_LookUp(0x%x, %s, %d)", dictP, word, caseSense);
     PushUserEvent(caseSense ? EVENT_LOOK_UP_CASE_SENSE : EVENT_LOOK_UP, (void*)dictP, strdup(word));
-    syslog(LOG_INFO, "JS_LookUp end");
+    syslog(LOG_INFO, "-JS_LookUp");
     return PDL_TRUE;
 }
 static void DoLookUpById(struct Dict* dictP, int id)
 {
+    syslog(LOG_INFO, "+DoLookUpById(dictP: 0x%x, id: %d), dictP, id");
     struct json_object* jRow = DictLookUpById(dictP, id);
     CallJSAndPutJSON("onLookUpById", jRow);
-    syslog(LOG_INFO, "DoLookUpById end");
+    syslog(LOG_INFO, "-DoLookUpById end");
 }
 static PDL_bool JS_LookUpById(PDL_JSParameters *params)
 {
     int dictP = PDL_GetJSParamInt(params, 0);
     int rowid = PDL_GetJSParamInt(params, 1);
-    syslog(LOG_INFO, "JS_LookUpById(%d)", rowid);
+    syslog(LOG_INFO, "+JS_LookUpById(%d)", rowid);
     PushUserEvent(EVENT_LOOK_UP_BY_ID, (void*)dictP, (void*)rowid);
+    syslog(LOG_INFO, "-JS_LookUpById");
     return PDL_TRUE;
 }
 ////////////////////////////////////////////
 static void DoGetMeta(struct Dict* dictP)
 {
-    syslog(LOG_INFO, "DoGetMeta(0x%x)", dictP);
+    syslog(LOG_INFO, "+DoGetMeta(0x%x)", dictP);
     struct json_object* jMeta = DictGetMeta(dictP);
     CallJSAndPutJSON("onGetMeta", jMeta);
-    syslog(LOG_INFO, "DoGetMeta(0x%x) end");
+    syslog(LOG_INFO, "-DoGetMeta(0x%x) end");
 }
 static PDL_bool JS_GetMeta(PDL_JSParameters *params)
 {
     int dictP = PDL_GetJSParamInt(params, 0);
-    syslog(LOG_INFO, "JS_GetMeta(0x%x)", dictP);
+    syslog(LOG_INFO, "+JS_GetMeta(0x%x)", dictP);
     PushUserEvent(EVENT_GET_META, (void*)dictP, NULL);
+    syslog(LOG_INFO, "-JS_GetMeta");
     return PDL_TRUE;
 }
 /////////////////////////////////////////
 static struct Dict* DoOpenDict(const char* filename)
 {
-    syslog(LOG_INFO, "DoOpenDict(%s)", filename);
+    syslog(LOG_INFO, "+DoOpenDict(%s)", filename);
     return DictOpen(filename);
-    syslog(LOG_INFO, "DoOpenDict end");
+    syslog(LOG_INFO, "-DoOpenDict");
 }
 static PDL_bool JS_OpenDict(PDL_JSParameters *params)
 {
     const char* filename = PDL_GetJSParamString(params, 0);
-    syslog(LOG_INFO, "JS_OpenDict(%s)", filename);
+    syslog(LOG_INFO, "+JS_OpenDict(%s)", filename);
     struct Dict* dictP = DoOpenDict(filename);
-    syslog(LOG_INFO, "JS_OpenDict(): 0x%x", dictP);
+    syslog(LOG_INFO, "=JS_OpenDict(): 0x%x", dictP);
     char dictStr[16];
     sprintf(dictStr, "%d", (int)dictP);
-    syslog(LOG_INFO, "JS_OpenDict(): %s", dictStr);
     PDL_JSReply(params, dictStr);
+    syslog(LOG_INFO, "-JS_OpenDict(): %s", dictStr);
     return PDL_TRUE;
 }
 /////////////////////////////////////////
 static void DoCloseDict(struct Dict* dictP)
 {
-    syslog(LOG_INFO, "DoCloseDict(0x%x)", dictP);
+    syslog(LOG_INFO, "+DoCloseDict(0x%x)", dictP);
     DictClose(dictP);
-    syslog(LOG_INFO, "DoCloseDict end");
+    syslog(LOG_INFO, "-DoCloseDict");
 }
 static PDL_bool JS_CloseDict(PDL_JSParameters *params)
 {
@@ -146,34 +156,20 @@ int main(int argc, char** argv)
     openlog("net.mospot.webos.jdict", 0, LOG_USER);
     syslog(LOG_INFO, "plugin start");
     
-    syslog(LOG_INFO, "SDL_Init vvv");
     SDL_Init(SDL_INIT_VIDEO);
-    syslog(LOG_INFO, "SDL_Init ^^^");
-    syslog(LOG_INFO, "PDL_Init vvv");
     PDL_Init(0);
-    syslog(LOG_INFO, "PDL_Init ^^^");
     
-    CVfsRegister(1);
-    LogVfsRegister(1);
+    ZipVfsRegister(0);
+    //LogVfsRegister("net.mospot.zipvfs");
 
     // register the js callback
-    syslog(LOG_INFO, "PDL_RegisterJSHandler vvv");
     PDL_RegisterJSHandler("queryDicts", JS_QueryDicts);
-    syslog(LOG_INFO, "PDL_RegisterJSHandler queryDicts");
     PDL_RegisterJSHandler("openDict", JS_OpenDict);
-    syslog(LOG_INFO, "PDL_RegisterJSHandler openDict");
     PDL_RegisterJSHandler("closeDict", JS_CloseDict);
-    syslog(LOG_INFO, "PDL_RegisterJSHandler closeDict");
     PDL_RegisterJSHandler("getMeta", JS_GetMeta);
-    syslog(LOG_INFO, "PDL_RegisterJSHandler getMeta");
     PDL_RegisterJSHandler("lookUp", JS_LookUp);
-    syslog(LOG_INFO, "PDL_RegisterJSHandler lookUp");
     PDL_RegisterJSHandler("lookUpById", JS_LookUpById);
-    syslog(LOG_INFO, "PDL_RegisterJSHandler lookUpById");
-    syslog(LOG_INFO, "PDL_RegisterJSHandler ^^^");
-    syslog(LOG_INFO, "PDL_JSRegistrationComplete vvv");
     PDL_JSRegistrationComplete();
-    syslog(LOG_INFO, "PDL_JSRegistrationComplete ^^^");
     
     PushUserEvent(EVENT_READY, NULL, NULL);
 
@@ -224,8 +220,8 @@ END:
 
     syslog(LOG_INFO, "plugin exit.vvv");
     
-    LogVfsUnregister();
-    CVfsUnregister();
+    //LogVfsUnregister();
+    ZipVfsUnregister();
     
     // Cleanup
     PDL_Quit();

@@ -19,17 +19,20 @@ function DictionaryC(dictInfo) {
 }
 ///////////
 DictionaryC.prototype.free = function() {
+	Mojo.Log.error("+C.free");
 	var plugin = DictionaryC.prototype.plugin;
 	plugin.closeDict(this.db);
 	delete this.db;
 	
-	plugin.onGetMeta = undefined;
+	/*plugin.onGetMeta = undefined;
 	plugin.onLookUp = undefined;
-	plugin.onLookUpById = undefined;
+	plugin.onLookUpById = undefined;*/
+	Mojo.Log.error("-C.free");
 };
 DictionaryC.prototype.load = function(callback) {
 	this.loadCallback = callback;
 
+	Mojo.Log.error("+C.load");
 	var plugin = DictionaryC.prototype.plugin;
 	
 	plugin.onGetMeta = this.onGetMeta.bind(this);
@@ -37,16 +40,23 @@ DictionaryC.prototype.load = function(callback) {
 	plugin.onLookUpById = this.onLookUp.bind(this);
 	
 	this.db = plugin.openDict(this.filename);
+	Mojo.Log.error("+C.getMeta", plugin.onGetMeta);
 	plugin.getMeta(this.db);
+	Mojo.Log.error("-C.getMeta", plugin.onGetMeta);
+	Mojo.Log.error("-C.load");
 };
 
 DictionaryC.prototype.onGetMeta = function(jMeta) {
 	// update dict meta
+	Mojo.Log.error("+C.onGetMeta");
 	this.meta = eval('('+jMeta+')');
 	setTimeout(function() {
+		Mojo.Log.error("+C.loadCallback", this.loadCallback);
 		this.loadCallback(this.meta); 
 		delete this.loadCallback;
+		Mojo.Log.error("-C.loadCallback");
 	}.bind(this), 0);
+	Mojo.Log.error("-C.onGetMeta");
 };
 
 //////////
@@ -91,6 +101,7 @@ var queryDictsC = function(callback) {
 			this.dicts.push(new DictionaryC(dicts[i]));
 		}
 		setTimeout(function() {
+			Mojo.Log.error("queryDictsC-callback");
 			this.queryDictsCallback(this.dicts); 
 			delete this.queryDictsCallback;
 		}.bind(this), 0);

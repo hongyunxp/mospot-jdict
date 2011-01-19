@@ -110,21 +110,26 @@ const char* LogVfsGetName()
 {
 	return g_logVfs.zName;
 }
-int LogVfsRegister(int makeDflt)
+int LogVfsRegister(const char* vfs)
 {
-	syslog(LOG_INFO, "+LogVfsRegister(makeDflt: %d)", makeDflt);
+	syslog(LOG_INFO, "+LogVfsRegister(makeDflt: %s)", vfs);
 	syslog(LOG_INFO, "=LogVfsRegister: sizeof: sqlite3_int64: %d, long: %d, long long: %d, size_t: %d",
 			sizeof(sqlite3_int64), sizeof(long), sizeof(long long), sizeof(size_t));
 	
-	sqlite3_vfs* defVfsP = sqlite3_vfs_find(NULL);
-	g_logVfs.iVersion = defVfsP->iVersion;
-	g_logVfs.mxPathname = defVfsP->mxPathname;
-	g_logVfs.pAppData = defVfsP;
-	syslog(LOG_INFO, "=LogVfsRegister: defVfsP: iVersion: %d, szOsFile: %d, mxPathname: %d, zName: %s",
-		   defVfsP->iVersion, defVfsP->szOsFile, defVfsP->mxPathname, defVfsP->zName);
-	
-	int ret = sqlite3_vfs_register(&g_logVfs, makeDflt);
-	syslog(LOG_INFO, "-LogVfsRegister(makeDflt: %d): %d", makeDflt, ret);
+	sqlite3_vfs* defVfsP = sqlite3_vfs_find(vfs);
+	syslog(LOG_INFO, "=LogVfsRegister: defVfsP: 0x%x", defVfsP);
+	int ret = -1;
+	if(defVfsP)
+	{
+		g_logVfs.iVersion = defVfsP->iVersion;
+		g_logVfs.mxPathname = defVfsP->mxPathname;
+		g_logVfs.pAppData = defVfsP;
+		syslog(LOG_INFO, "=LogVfsRegister: defVfsP: iVersion: %d, szOsFile: %d, mxPathname: %d, zName: %s",
+			   defVfsP->iVersion, defVfsP->szOsFile, defVfsP->mxPathname, defVfsP->zName);
+		
+		ret = sqlite3_vfs_register(&g_logVfs, 0);
+	}
+	syslog(LOG_INFO, "-LogVfsRegister(vfs: %s): %d", vfs, ret);
 	return ret;
 }
 int LogVfsUnregister()

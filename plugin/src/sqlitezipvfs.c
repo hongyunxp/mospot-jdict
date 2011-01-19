@@ -14,6 +14,7 @@ struct ZipFile
 {
 	const struct sqlite3_io_methods *pMethods;
 	struct zip* zipP;
+	int partSize;
 };
 
 static int XClose(sqlite3_file*);
@@ -133,32 +134,31 @@ static int XClose(sqlite3_file* sqFileP)
 }
 static int XRead(sqlite3_file* sqFileP, void* pBuf, int iAmt, sqlite3_int64 iOfst)
 {
+	// it seems sqlite always reads data that alined to 1024 bytes (except for 16 bytes with offset 24),
+	// therefore one call to XRead will not cross two files
 	struct ZipFile* zipFileP = (struct ZipFile*)sqFileP;
-	struct zip_file* file = zip_fopen_index(zipFileP->zipP, 0, 0) ;
-	if(file == NULL)
-	{
-		return SQLITE_IOERR_READ;
-	}
-
+	int q = iOfst / zipFileP->partSize;
+	int p = iOfst % zipFileP->partSize;
+	struct zip_file* file = zip_fopen_index(zipFileP->zipP, q, 0) ;
+	if(file == NULL) return SQLITE_IOERR_READ;
+	// seek by read and drop
 	static char tempBuf[4096];
-	while(iOfst > 4096)
+	while(p > sizeof(tempBuf))
 	{
-		int readCount = zip_fread(file, tempBuf, 4096);
-		if(readCount != 4096)
+		if(zip_fread(file, tempBuf, sizeof(tempBuf)) != sizeof(tempBuf))
 		{
 			zip_fclose(file);
 			return SQLITE_IOERR_READ;
 		}
-		iOfst -= 4096;
+		p -= sizeof(tempBuf);
 	}
-	int readCount = zip_fread(file, tempBuf, iOfst);
-	if(readCount != iOfst)
+	if(zip_fread(file, tempBuf, p) != p)
 	{
 		zip_fclose(file);
 		return SQLITE_IOERR_READ;
 	}
 	
-	readCount = zip_fread(file, pBuf, iAmt);
+	int readCount = zip_fread(file, pBuf, iAmt);
 	if(readCount == iAmt)
 	{
 		zip_fclose(file);
@@ -198,11 +198,14 @@ static int XFileSize(sqlite3_file* sqFileP, sqlite3_int64 *pSize)
 {
 	struct ZipFile* zipFileP = (struct ZipFile*)sqFileP;
 	
+	int n = zip_get_num_files(zipFileP->zipP);
+	if(n <= 0) return SQLITE_IOERR_FSTAT;
+	
 	struct zip_stat stat = { 0 };
-	if(zip_stat_index(zipFileP->zipP, 0, 0, &stat) != 0)
+	if(zip_stat_index(zipFileP->zipP, n-1, 0, &stat) != 0)
 		return SQLITE_IOERR_FSTAT;
 	
-	*pSize = stat.size;
+	*pSize = (sqlite3_int64)zipFileP->partSize * (n-1) + stat.size;
 	return SQLITE_OK;
 }
 static int XLock(sqlite3_file* sqFileP, int locktype)
@@ -285,6 +288,12 @@ static int XOpen(sqlite3_vfs* vfsP, const char *zName, sqlite3_file* sqFileP, in
 	zipFileP->zipP = zip_open(zName, 0, NULL);
 	if(zipFileP->zipP == NULL)
 		return SQLITE_CANTOPEN;
+	
+	struct zip_stat stat = { 0 };
+	if(zip_stat_index(zipFileP->zipP, 0, 0, &stat) != 0)
+		return SQLITE_CANTOPEN;
+	zipFileP->partSize = stat.size;
+
 	zipFileP->pMethods = &g_zipIoMethods;
 	if(pOutFlags) *pOutFlags = SQLITE_OPEN_READONLY;
 	return SQLITE_OK;

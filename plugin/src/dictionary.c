@@ -10,7 +10,6 @@
 struct Dict
 {
 	sqlite3* dbP;
-	const char* filename;
 };
 
 void DictClose(struct Dict* dictP)
@@ -18,7 +17,6 @@ void DictClose(struct Dict* dictP)
 	if(dictP)
 	{
 		sqlite3_close(dictP->dbP);
-		free((void*)dictP->filename);
 		free(dictP);
 	}
 }
@@ -29,9 +27,11 @@ struct Dict* DictOpen(const char* filename)
 	struct Dict* dictP = (struct Dict*)malloc(sizeof(*dictP));
 	memset(dictP, 0, sizeof(*dictP));
 	
-	dictP->filename = strdup(filename);
-
-    if(sqlite3_open_v2(dictP->filename, &dictP->dbP, SQLITE_OPEN_READONLY, NULL/*VFS*/) != SQLITE_OK)
+	const char* ext = NULL;
+	const char* vfs = NULL;
+	if((ext = strrchr(filename, '.')) && (strcmp(ext, ".jdict") == 0))
+		vfs = "net.mospot.zipvfs";
+    if(sqlite3_open_v2(filename, &dictP->dbP, SQLITE_OPEN_READONLY, vfs) != SQLITE_OK)
     {
         DictClose(dictP);
         return NULL;
@@ -134,19 +134,16 @@ struct json_object* DictPeek(const char* filename)
     const char* sql = "select * from (select max(rowid) as count from dict)"
         " left join " "(select value as name from meta where key='name')";
 
-    sqlite3 *dbP = NULL;
-    if(sqlite3_open_v2(filename, &dbP, SQLITE_OPEN_READONLY, NULL/*VFS*/) != SQLITE_OK)
-    {
-        sqlite3_close(dbP);
-        return NULL;
-    }
+
+	struct Dict* dictP = DictOpen(filename);
+	if(dictP == NULL) return NULL;
     
     struct json_object* jInfo = NULL;
-    sqlite3_exec(dbP, sql, DictPeekCb, (void*)&jInfo, NULL);
+    sqlite3_exec(dictP->dbP, sql, DictPeekCb, (void*)&jInfo, NULL);
     if(jInfo)
         json_object_object_add(jInfo, "filename", json_object_new_string(filename));
     
-    sqlite3_close(dbP);
+    DictClose(dictP);
     return jInfo;
 }
 //////////////////////////////////////////
@@ -155,7 +152,7 @@ static int dirFilter(const struct dirent* entP)
     const char* ext = NULL;
     return (entP->d_type == DT_REG
             && (ext = strrchr(entP->d_name, '.'))
-            && strcmp(ext, ".db") == 0);
+            && (strcmp(ext, ".db") == 0 || strcmp(ext, ".jdict") == 0));
 }
 /* [ jInfo* ] */
 struct json_object* QueryDicts(/*const char* path*/)

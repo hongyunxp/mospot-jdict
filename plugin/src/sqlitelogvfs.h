@@ -1,4 +1,4 @@
 
 const char* LogVfsGetName();
-int LogVfsRegister(int makeDflt);
+int LogVfsRegister(const char* vfs);
 int  LogVfsUnregister();
