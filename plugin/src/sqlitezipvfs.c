@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <syslog.h>
+//#include <syslog.h>
 
 #include "sqlite/sqlite3.h"
 #include "libzip/lib/zip.h"

@@ -14,7 +14,6 @@ MainAssistant.prototype.HandleDragStart = function(event) {
 };
 
 MainAssistant.prototype.setup = function() {
-	Mojo.Log.error("MainAssistant.prototype.setup");
 	/* this function is for setup tasks that have to happen when the scene is first created */
 	this.pendingLoads = 1;
 	$("plugin").ready = this.initDicts.bind(this);
@@ -68,7 +67,6 @@ MainAssistant.prototype.setup = function() {
 };
 
 MainAssistant.prototype.activate = function(event) {
-	Mojo.Log.error("MainAssistant.prototype.activate");
 	/* put in event handlers here that should only be in effect when this scene is active. For
 	   example, key handlers that are observing the document */
 	this.controller.get("swipe-main").style.fontSize = Model.model.fontSize;
@@ -101,7 +99,6 @@ MainAssistant.prototype.cleanup = function(event) {
 };
 
 MainAssistant.prototype.aboutToActivate = function(continueActivate) {
-	Mojo.Log.error("MainAssistant.prototype.aboutToActivate", this.pendingLoads);
 	if(this.pendingLoads) {
 		this.continueActivate = continueActivate;
 	} else {
@@ -187,7 +184,6 @@ MainAssistant.prototype.onLookUp = function(row) {
 	}
 };
 MainAssistant.prototype.lookUp = function(word, caseSense) {
-	Mojo.Log.error("MainAssistant.prototype.lookUp", word, caseSense);
 	this.dicts[Model.model.dictIndex].lookUp(word, this.onLookUp.bind(this), caseSense);
 };
 MainAssistant.prototype.onLookNext = function(row) {
@@ -222,7 +218,6 @@ MainAssistant.prototype.loadDictComplete = function(meta) {
 		.replace(/(<style.*?>).*?(<\/style>)/, "$1"+meta.styles+"$2");
 };
 MainAssistant.prototype.queryDictsComplete = function(dicts) {
-	Mojo.Log.error("queryDictsComplete");
 	this.dicts = this.dicts.concat(dicts);
 	_dumpObj(this.dicts);
 
@@ -240,7 +235,6 @@ MainAssistant.prototype.queryDictsComplete = function(dicts) {
 	}
 	this.controller.modelChanged(Model.model, this);
 	
-	Mojo.Log.error("load:", Model.model.dictIndex);
 	_dumpObj(this.dicts[Model.model.dictIndex]);
 	// load dict meta and render parameters
 	this.dicts[Model.model.dictIndex].load(this.loadDictComplete.bind(this));
@@ -249,11 +243,9 @@ MainAssistant.prototype.queryDictsComplete = function(dicts) {
 	if(this.continueActivate) {
 		this.continueActivate();
 		delete this.continueActivate;
-		Mojo.Log.error("this.continueActivate()");
 	}
 };
 MainAssistant.prototype.initDicts = function() {
-	Mojo.Log.error("MainAssistant.prototype.initDicts");
 	this.dicts = [];
 	this.pendingLoads = 2;
 	queryDicts(this.queryDictsComplete.bind(this));

@@ -17,6 +17,9 @@
 #include "sqlitecvfs.h"
 #include "dictionary.h"
 
+#define LOGE(args...) syslog(LOG_ERR, ##args)
+#define syslog(args...)
+
 #define EVENT_READY 720
 
 #define EVENT_QUERY_DICTS 721
@@ -45,7 +48,7 @@ static void CallJSAndPutJSON(const char* jsFunc, struct json_object* json)
     int err = PDL_CallJS(jsFunc, &jstring, 1);
     while(err != 0)
     {
-        syslog(LOG_ERR, "PDL_CallJS(%s): %d: %s", jsFunc, err, PDL_GetError());
+        LOGE("PDL_CallJS(%s): %d: %s", jsFunc, err, PDL_GetError());
         usleep(2000);
         err = PDL_CallJS(jsFunc, &jstring, 1);
     }
