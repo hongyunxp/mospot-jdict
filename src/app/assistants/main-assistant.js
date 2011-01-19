@@ -107,12 +107,11 @@ MainAssistant.prototype.aboutToActivate = function(continueActivate) {
 };
 ///////////////////////////////////////////
 MainAssistant.prototype.handleEnter = function(event) {
+	// fix that an input method do not generate "input" event
+	setTimeout(function(){ Mojo.Event.send(this.searchField, "input"); }.bind(this), 0);
 	if (Mojo.Char.isEnterKey(event.keyCode)) {
 		this.searchField.select();
 		// TODO: if already selected, move to next dict
-	} else {
-		// fix that an input method do not generate "input" event
-		setTimeout(function(){ Mojo.Event.send(this.searchField, "input"); }.bind(this), 0);
 	}
 };
 MainAssistant.prototype.handleKeyDown = function(event) {
