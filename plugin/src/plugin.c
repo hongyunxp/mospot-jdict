@@ -10,6 +10,7 @@
 
 #include <syslog.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include "json-c/json.h"
 
 #include "sqlitelogvfs.h"
@@ -141,6 +142,7 @@ static void DoQueryDicts(const char* path)
 {
     if(path == NULL || path[0] == '\0')
         path = "/media/internal/jdict";
+    mkdir(path, 0777);
     chdir(path);
     
     struct json_object* jDicts = QueryDicts();

@@ -14,10 +14,6 @@
         "source": "app/models/dictionary-c.js"
     },
     {
-        "scenes": "main",
-        "source": "app/models/dictionary.js"
-    },
-    {
         "scenes": "help",
         "source": "app/assistants/help-assistant.js"
     },

@@ -246,7 +246,6 @@ MainAssistant.prototype.queryDictsComplete = function(dicts) {
 };
 MainAssistant.prototype.initDicts = function() {
 	this.dicts = [];
-	this.pendingLoads = 2;
-	queryDicts(this.queryDictsComplete.bind(this));
+	this.pendingLoads = 1;
 	setTimeout(function() { queryDictsC(this.queryDictsComplete.bind(this)); }.bind(this), 0);
 };
