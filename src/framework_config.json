@@ -3,5 +3,5 @@
     "debuggingEnabled": false,
     "timingEnabled": false,
     "logEvents": false,
-    "escapeHTMLInTemplates": true
+    "escapeHTMLInTemplates": false
 }
